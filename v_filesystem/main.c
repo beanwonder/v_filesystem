@@ -7,12 +7,82 @@
 //
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include "utilities.h"
 
-int main(int argc, const char * argv[])
+int main(void)
 {
-
-    // insert code here...
-    printf("Hello, World!\n");
+    int vfs_exists = -1;
+    const char vfs_device[] = "v_device";
+    void show_main_menu();
+    char choice = '\0';
+    
+    while (1) {
+        vfs_exists = access(vfs_device, F_OK);
+        show_main_menu(vfs_exists);
+        printf("    please choose a number \n");
+        
+        if (vfs_exists == 0) {
+            do {
+                choice = getchar();
+            } while (choice != '1' && choice != '2' && choice != '3');
+            
+            switch (choice) {
+                case '1':
+                    printf("creating a filesystem \n");
+                    //create_filesystem();
+                    break;
+                case '2':
+                    printf("accessing existed filesystem\n");
+                    //access_exist_filesystem();
+                    break;
+                case '3':
+                    printf("leaving, bye! \n");
+                    exit(0);
+                    break;
+                default:
+                    break;
+            }
+        } else {
+            do {
+                choice = getchar();
+            } while (choice != '1' && choice != '2');
+            
+            switch (choice) {
+                case '1':
+                    printf("createing a filesystem \n");
+                    //create_filesystem();
+                    break;
+                case '2':
+                    printf("leaving, bye! \n");
+                    exit(0);
+                    break;
+                default:
+                    break;
+            }
+        }
+        system("clear");
+    }
     return 0;
 }
 
+void show_main_menu(int vfs_exists)
+{
+    printf("*****************************************************\n");
+    printf("*   welcome to this unix-like virtual file system   *\n");
+    printf("*              here is the main memu                *\n");
+    printf("*****************************************************\n");
+    
+    if (vfs_exists == 0) {
+        printf("*          1. create a brand new file system        *\n");
+        printf("*          2. access existing file system           *\n");
+        printf("*          3. exit                                  *\n");
+        printf("*****************************************************\n");
+    } else {
+        printf("*          1. create a brand new file system        *\n");
+        printf("*          2. exit                                  *\n");
+        printf("*****************************************************\n");
+    }
+}
