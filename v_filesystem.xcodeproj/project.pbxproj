@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		D70F5F3218684DA500546B47 /* utilities.c in Sources */ = {isa = PBXBuildFile; fileRef = D70F5F3118684DA500546B47 /* utilities.c */; };
+		D707064A186C4F1B0046533A /* util.c in Sources */ = {isa = PBXBuildFile; fileRef = D7070649186C4F1B0046533A /* util.c */; };
 		D75DD61218503EBB00519EB3 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = D75DD61118503EBB00519EB3 /* main.c */; };
 		D75DD61418503EBB00519EB3 /* v_filesystem.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = D75DD61318503EBB00519EB3 /* v_filesystem.1 */; };
 /* End PBXBuildFile section */
@@ -26,8 +26,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		D70F5F3018684D8700546B47 /* utilities.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = utilities.h; sourceTree = "<group>"; };
-		D70F5F3118684DA500546B47 /* utilities.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = utilities.c; sourceTree = "<group>"; };
+		D7070648186C4EE10046533A /* beanfs */ = {isa = PBXFileReference; lastKnownFileType = folder; path = beanfs; sourceTree = "<group>"; };
+		D7070649186C4F1B0046533A /* util.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = util.c; sourceTree = "<group>"; };
+		D707064B186C4F2E0046533A /* util.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = util.h; sourceTree = "<group>"; };
 		D75DD60E18503EBB00519EB3 /* v_filesystem */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = v_filesystem; sourceTree = BUILT_PRODUCTS_DIR; };
 		D75DD61118503EBB00519EB3 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		D75DD61318503EBB00519EB3 /* v_filesystem.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = v_filesystem.1; sourceTree = "<group>"; };
@@ -63,10 +64,11 @@
 		D75DD61018503EBB00519EB3 /* v_filesystem */ = {
 			isa = PBXGroup;
 			children = (
+				D7070648186C4EE10046533A /* beanfs */,
 				D75DD61118503EBB00519EB3 /* main.c */,
-				D70F5F3018684D8700546B47 /* utilities.h */,
-				D70F5F3118684DA500546B47 /* utilities.c */,
 				D75DD61318503EBB00519EB3 /* v_filesystem.1 */,
+				D7070649186C4F1B0046533A /* util.c */,
+				D707064B186C4F2E0046533A /* util.h */,
 			);
 			path = v_filesystem;
 			sourceTree = "<group>";
@@ -122,8 +124,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D70F5F3218684DA500546B47 /* utilities.c in Sources */,
 				D75DD61218503EBB00519EB3 /* main.c in Sources */,
+				D707064A186C4F1B0046533A /* util.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

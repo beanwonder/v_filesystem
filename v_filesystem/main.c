@@ -9,22 +9,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <string.h>
 #include "utilities.h"
 
 int main(void)
 {
-    int vfs_exists = -1;
-    const char vfs_device[] = "v_device";
+    int vfs_exist = -1;
+    const char vfs_device[] = "virtual_device";
     void show_main_menu();
     char choice = '\0';
     
     while (1) {
-        vfs_exists = access(vfs_device, F_OK);
-        show_main_menu(vfs_exists);
+        vfs_exist = access(vfs_device, F_OK);
+        show_main_menu(vfs_exist);
         printf("    please choose a number \n");
         
-        if (vfs_exists == 0) {
+        if (vfs_exist == 0) {
             do {
                 choice = getchar();
             } while (choice != '1' && choice != '2' && choice != '3');
