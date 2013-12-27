@@ -33,13 +33,33 @@ static void init_root_inode(struct beanfs_inode *root_inode_p)
     root_inode_p->i_mode = 0755;
 }
 
-static void init_free_lists_top(struct beanfs_super_block *sbp)
+static int init_free_lists(struct beanfs_super_block *sbp, FILE *v_device)
 {
+    uint32_t rblocks = 0;
+    uint32_t head_block_offset = 1;
+    // fill the super_block
     if (sbp->s_data_blocks_count > FREE_BLOCKS_LIST_SIZE) {
         sbp->blocks_list_top = FREE_BLOCKS_LIST_SIZE - 1;
     } else {
         sbp->blocks_list_top = sbp->s_free_blocks_count - 1;            // one data block for root
     }
+    // in memory
+    for (int i = sbp->blocks_list_top; i >= 0; i--) {
+        sbp->s_free_blocks_list_group[i] = head_block_offset + sbp->blocks_list_top - i;
+    }
+    
+    head_block_offset = head_block_offset + sbp->blocks_list_top + 1;
+    rblocks = sbp->s_data_blocks_count - sbp->blocks_list_top - 1;
+    // write into device
+    while (rblocks > 0) {
+        if (rblocks >) {
+            
+        } else {
+            
+        }
+    }
+    
+    
     
     if (sbp->s_free_inodes_count > FREE_INODES_LIST_SIZE) {
         sbp->inodes_list_top = FREE_INODES_LIST_SIZE;
@@ -47,10 +67,9 @@ static void init_free_lists_top(struct beanfs_super_block *sbp)
         sbp->inodes_list_top = sbp->s_free_inodes_count - 1;            // one node for root
     }
     
-    
 }
 
-static void init_superblock(struct beanfs_super_block *sbp, unsigned long blocks)
+static void init_superblock(struct beanfs_super_block *sbp, uint32_t blocks, FILE *v_device)
 {
     sbp->s_blocks_count = blocks;                                   // disk blocks
     sbp->s_inodes_count = blocks / 10;                              // block number >= 10
@@ -59,31 +78,25 @@ static void init_superblock(struct beanfs_super_block *sbp, unsigned long blocks
     sbp->s_free_inodes_count = sbp->s_inodes_count - 1;             // one inode for root dir
     sbp->first_inode = BOOTBLOCKNUM + SUPERBLOCKNUM - 1;
     sbp->first_data_block = BOOTBLOCKNUM + SUPERBLOCKNUM + sbp->s_inodes_count - 1;
-    sbp->modify_time = (unsigned long)time(NULL);
+    sbp->modify_time = (uint32_t)time(NULL);
     
-    init_free_lists_top(sbp);
+    init_free_lists(sbp, v_device);
 }
 
-
-
-static int init_beanfs(unsigned long blocks, FILE virtual_device)
+static int init_beanfs(uint32_t blocks, FILE *virtual_device)
 {
     assert(blocks > 10);
     struct beanfs_super_block sb;
     struct beanfs_inode root_inode;
-    
-    init_superblock(&sb, blocks);
-    init_root_inode(&root_inode);
     // init root entry
     struct beanfs_dir_entry root_dir_entry[2] = {
         {0, 26, ".", 'd'},
         {0, 26, "..", 'd'}
     };
-    // init grouping lists
-    //init_free_blocks_list(&sb);
-    //init_free_inodes_list(&sb);
     
-    
+    init_root_inode(&root_inode);
+    init_superblock(&sb, blocks, virtual_device);
     
     return 0;
 }
+
