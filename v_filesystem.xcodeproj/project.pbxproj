@@ -10,6 +10,8 @@
 		D707064A186C4F1B0046533A /* util.c in Sources */ = {isa = PBXBuildFile; fileRef = D7070649186C4F1B0046533A /* util.c */; };
 		D7070659186D19EE0046533A /* file.c in Sources */ = {isa = PBXBuildFile; fileRef = D7070658186D19EE0046533A /* file.c */; };
 		D707065B186D1A010046533A /* dir.c in Sources */ = {isa = PBXBuildFile; fileRef = D707065A186D1A010046533A /* dir.c */; };
+		D707065D186D1E690046533A /* super.c in Sources */ = {isa = PBXBuildFile; fileRef = D707065C186D1E690046533A /* super.c */; };
+		D707065F186D27460046533A /* namei.c in Sources */ = {isa = PBXBuildFile; fileRef = D707065E186D27460046533A /* namei.c */; };
 		D75DD61218503EBB00519EB3 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = D75DD61118503EBB00519EB3 /* main.c */; };
 		D75DD61418503EBB00519EB3 /* v_filesystem.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = D75DD61318503EBB00519EB3 /* v_filesystem.1 */; };
 /* End PBXBuildFile section */
@@ -33,6 +35,8 @@
 		D7070657186D19EE0046533A /* beanfs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = beanfs.h; path = beanfs/beanfs.h; sourceTree = "<group>"; };
 		D7070658186D19EE0046533A /* file.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = file.c; path = beanfs/file.c; sourceTree = "<group>"; };
 		D707065A186D1A010046533A /* dir.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = dir.c; path = beanfs/dir.c; sourceTree = "<group>"; };
+		D707065C186D1E690046533A /* super.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = super.c; path = beanfs/super.c; sourceTree = "<group>"; };
+		D707065E186D27460046533A /* namei.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = namei.c; path = beanfs/namei.c; sourceTree = "<group>"; };
 		D75DD60E18503EBB00519EB3 /* v_filesystem */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = v_filesystem; sourceTree = BUILT_PRODUCTS_DIR; };
 		D75DD61118503EBB00519EB3 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		D75DD61318503EBB00519EB3 /* v_filesystem.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = v_filesystem.1; sourceTree = "<group>"; };
@@ -55,6 +59,8 @@
 				D7070657186D19EE0046533A /* beanfs.h */,
 				D7070658186D19EE0046533A /* file.c */,
 				D707065A186D1A010046533A /* dir.c */,
+				D707065C186D1E690046533A /* super.c */,
+				D707065E186D27460046533A /* namei.c */,
 			);
 			name = beanfs;
 			sourceTree = "<group>";
@@ -138,10 +144,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D707065F186D27460046533A /* namei.c in Sources */,
 				D75DD61218503EBB00519EB3 /* main.c in Sources */,
 				D707065B186D1A010046533A /* dir.c in Sources */,
 				D707064A186C4F1B0046533A /* util.c in Sources */,
 				D7070659186D19EE0046533A /* file.c in Sources */,
+				D707065D186D1E690046533A /* super.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

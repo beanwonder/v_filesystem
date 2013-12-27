@@ -1,5 +1,5 @@
 //
-//  dir.c
+//  super.c
 //  v_filesystem
 //
 //  Created by WONDER on 12/27/13.
@@ -7,4 +7,6 @@
 //
 
 #include <stdio.h>
+#include <stdlib.h>
 #include "beanfs.h"
+
