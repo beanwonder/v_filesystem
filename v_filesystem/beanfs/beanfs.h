@@ -40,13 +40,14 @@ struct beanfs_super_block {
 // structure of superblock in memomry
 struct beanfs_sb_info {
     
+    char i_ftype;
     unsigned long s_blocks_count;
     unsigned long s_inodes_count;
     unsigned long s_free_blocks_count;
     unsigned long s_free_inodes_count;
     
-    unsigned long s_free_blocks_list_group[60];
-    unsigned long s_free_inodes_list_group[60];
+    unsigned long s_free_blocks_list_group[60]; // array of blocks offset
+    unsigned long s_free_inodes_list_group[60]; // array of inodes offset
     unsigned short block_list_top;              // number of blocks in free block list
     unsigned short inode_list_top;              // number of inodes in free inode list
     
@@ -60,14 +61,15 @@ struct beanfs_sb_info {
     unsigned long modify_time;                  // modified time stamp
 };
 
+
 #define BEANFS_NDADDR 4
 #define BEANFS_NINDIR 2
+
 // structure of inode on v_disk
 struct beanfs_inode {
     
-    char bi_ftype;
     unsigned short i_mode;                     // permission
-    unsigned short i_nlink;                    // file link count
+    unsigned short i_links;                    // file link count
     unsigned long i_uid;                       // file onwer
     unsigned long i_gid;                       // file owner group
     
@@ -80,8 +82,8 @@ struct beanfs_inode {
     unsigned long i_blocks;                    // actual blocks held
     
     struct {
-        unsigned long i_db[BEANFS_NDADDR];     // direct addr
-        unsigned long i_id[BEANFS_NINDIR];     // first is 1st direct and second is 2th indirect
+        unsigned long i_db_offset[BEANFS_NDADDR];     // direct addr; number in data_blocks
+        unsigned long i_id_offset[BEANFS_NINDIR];     // first is 1st direct and second is 2th indirect
     } bi_addr;
     
 };
@@ -89,12 +91,10 @@ struct beanfs_inode {
 // structure of inode in memory
 struct beanfs_inode_info {
     
-    unsigned long i_num;                       // inode number in memory
     unsigned short i_access_count;             // access count
     
-    char i_ftype;
     unsigned short i_mode;                     // permission
-    unsigned short i_nlink;                    // file link count
+    unsigned short i_links;                    // file link count
     unsigned long i_uid;                       // file onwer
     unsigned long i_gid;                       // file owner group
     
@@ -107,13 +107,21 @@ struct beanfs_inode_info {
     unsigned long i_blocks;                    // actual blocks held
     
     struct {
-        unsigned long i_db[BEANFS_NDADDR];     // direct addr
-        unsigned long i_id[BEANFS_NINDIR];     // first is 1st direct and second is 2th indirect
-    } bi_addr;
+        unsigned long i_db_offset[BEANFS_NDADDR];     // direct addr; offset in data blocks
+        unsigned long i_id_offset[BEANFS_NINDIR];     // first is 1st direct and second is 2th indirect
+    } i_addr;
     
     unsigned short inode_lock;                 // 0 : unlocked and 1 : locked
 };
 
+#define MAX_ENTRY_NAME 20
+struct beanfs_dir_entry {
+    
+    unsigned long d_ino;                        // offset of the inode
+    unsigned short d_enlen                      // entry length
+    char d_name[MAX_ENTRY_NAME];                // name_length
+    char d_file_type;                           // file type 'd' or 's' or '-'
+};
 
 
 
