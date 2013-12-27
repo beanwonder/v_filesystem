@@ -123,6 +123,4 @@ struct beanfs_dir_entry {
     char d_file_type;                           // file type 'd' or 's' or '-'
 };
 
-
-
 #endif
