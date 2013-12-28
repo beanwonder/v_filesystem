@@ -12,11 +12,11 @@
 #include <time.h>
 #include "beanfs.h"
 
-#define SUPERBLOCKNUM 1
-#define BOOTBLOCKNUM 1
+#define SUPERBLOCKCOUNT 1
+#define BOOTBLOCKCOUNT 1
+#define FREEBLOCKLISTSCOUNT 1
 
-
-static void init_root_inode(struct beanfs_inode *root_inode_p)
+static void create_root_inode(struct beanfs_inode *root_inode_p)
 {
     root_inode_p->i_uid = 0;                           // onwer root
     root_inode_p->i_gid = 0;                           // group root
@@ -33,7 +33,7 @@ static void init_root_inode(struct beanfs_inode *root_inode_p)
     root_inode_p->i_mode = 0755;
 }
 
-static int init_free_lists(struct beanfs_super_block *sbp, FILE *v_device)
+static int init_free_blocks_lists(struct beanfs_super_block *sbp, FILE *v_device)
 {
     uint32_t rblocks = 0;
     uint32_t head_block_offset = 1;
@@ -69,23 +69,22 @@ static int init_free_lists(struct beanfs_super_block *sbp, FILE *v_device)
     
 }
 
-static void init_superblock(struct beanfs_super_block *sbp, uint32_t blocks, FILE *v_device)
+static void create_raw_superblock(struct beanfs_super_block *sbp, uint32_t blocks, FILE *v_device)
 {
-    sbp->s_blocks_count = blocks;                                   // disk blocks
+    sbp->s_blocks_count = blocks;                                   // total disk blocks
     sbp->s_inodes_count = blocks / 10;                              // block number >= 10
-    sbp->s_data_blocks_count = sbp->s_blocks_count - 1;
-    
-    sbp->s_free_inodes_count = sbp->s_inodes_count - 1;             // one inode for root dir
-    sbp->first_inode = BOOTBLOCKNUM + SUPERBLOCKNUM - 1;
-    sbp->first_data_block = BOOTBLOCKNUM + SUPERBLOCKNUM + sbp->s_inodes_count - 1;
-    sbp->modify_time = (uint32_t)time(NULL);
-    
-    init_free_lists(sbp, v_device);
+    sbp->s_data_blocks_count = sbp->s_blocks_count - BOOTBLOCKCOUNT - SUPERBLOCKCOUNT - FREEBLOCKLISTSCOUNT - sbp->s_inodes_count;
+    sbp->s_free_inodes_count = sbp->s_inodes_count;
+    sbp->s_free_lists_block = BOOTBLOCKCOUNT + SUPERBLOCKCOUNT;
+    sbp->s_first_inode_block = sbp->s_free_lists_block + FREEBLOCKLISTSCOUNT;
+    sbp->s_first_data_block = sbp->s_first_inode_block + sbp->s_inodes_count;
+    sbp->s_ctime = (uint32_t)time(NULL);                            // superblock created time
+    sbp->s_mtime = sbp->s_ctime;
 }
 
 static int init_beanfs(uint32_t blocks, FILE *virtual_device)
 {
-    assert(blocks > 10);
+    assert(blocks >= 10);
     struct beanfs_super_block sb;
     struct beanfs_inode root_inode;
     // init root entry
@@ -94,8 +93,8 @@ static int init_beanfs(uint32_t blocks, FILE *virtual_device)
         {0, 26, "..", 'd'}
     };
     
-    init_root_inode(&root_inode);
-    init_superblock(&sb, blocks, virtual_device);
+    create_root_inode(&root_inode);
+    create_raw_superblock(&sb, blocks, virtual_device);
     
     return 0;
 }
