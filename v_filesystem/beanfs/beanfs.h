@@ -25,11 +25,11 @@ struct beanfs_super_block {
     
     uint32_t s_blocks_count;
     uint32_t s_inodes_count;
-    uint32_t s_data_blocks_count;
-    uint32_t s_free_blocks_count;
+    uint32_t s_datablocks_count;
+    uint32_t s_free_datablocks_count;
     uint32_t s_free_inodes_count;
     
-    uint32_t s_free_lists_block;              // block number for free lists; boot, superblock, freelistsblock
+    uint32_t s_free_lists_block;              // block position for free lists; boot, superblock, freelistsblock
     
     uint32_t s_first_data_block;
     uint32_t s_first_inode_block;
@@ -42,22 +42,22 @@ struct beanfs_super_block {
 };
 
 struct free_blocks_lists {
-    uint8_t free_datablocks_top;
+    int8_t free_datablocks_top;
     uint32_t free_datablocks_group_list[FREE_DATABLOCKS_LIST_SIZE];
-    uint8_t free_inodes_top;
+    int8_t free_inodes_top;
     uint32_t free_inodes_group_list[FREE_INODES_LIST_SIZE];
 };
 
 // structure of superblock in memomry
 struct beanfs_sb_info {
     
-    char i_ftype;
-    uint32_t s_blocks_count;
+    uint32_t s_blocks_count;                // total disk blocks 512byte per block
+    uint32_t s_datablocks_count;
     uint32_t s_inodes_count;
-    uint32_t s_free_blocks_count;
+    uint32_t s_free_datablocks_count;
     uint32_t s_free_inodes_count;
     
-    struct free_blocks_lists f_blocks_lists;
+    struct free_blocks_lists s_free_blocks_lists;
     
     uint32_t s_first_data_block;             // first data block
     uint32_t s_first_inode_block;            // first inode
@@ -127,7 +127,7 @@ struct beanfs_inode_info {
 struct beanfs_dir_entry {
     
     uint32_t d_ino;                             // 0; inode number in inodes
-    const uint16_t d_length;                    // 4; entry length
+    uint8_t d_length;                     // 4; entry length
     char d_name[MAX_ENTRY_NAME];                // 5; name_length
     char d_file_type;                           // 25; file type 'd' or 's' or '-'
 };                                              // 26; bytes
