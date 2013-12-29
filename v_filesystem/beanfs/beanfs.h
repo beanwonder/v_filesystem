@@ -29,23 +29,30 @@ struct beanfs_super_block {
     uint32_t s_free_datablocks_count;
     uint32_t s_free_inodes_count;
     
-    uint32_t s_free_lists_block;              // block position for free lists; boot, superblock, freelistsblock
+    uint32_t s_free_datablocksmg_block;              // block position for free lists group; boot, superblock, free_datablock_spacemg_block
+    uint32_t s_free_inodesmg_block;                  // then come freeinodes space manage block
     
     uint32_t s_first_data_block;
     uint32_t s_first_inode_block;
     
-    //uint16_t block_list_lock;               //0 stand for unlock and 1 stand for unlock
-    //uint16_t inode_list_lock;
-    
-    uint32_t s_mtime;                         // modified timestamp
-    uint32_t s_ctime;                         // created timestamp
+    uint32_t s_mtime;                             // modified timestamp
+    uint32_t s_birthtime;                         // created timestamp
 };
 
-struct free_blocks_lists {
-    int8_t free_datablocks_top;
-    uint32_t free_datablocks_group_list[FREE_DATABLOCKS_LIST_SIZE];
-    int8_t free_inodes_top;
-    uint32_t free_inodes_group_list[FREE_INODES_LIST_SIZE];
+
+struct free_datablocks_group {
+    int8_t top;
+    uint32_t list[FREE_DATABLOCKS_LIST_SIZE];
+};
+
+struct free_inodes_group {
+    int8_t top;
+    uint32_t list[FREE_INODES_LIST_SIZE];
+};
+
+struct free_blocks_group {
+    struct free_datablocks_group data_group;
+    struct free_inodes_group inode_group;
 };
 
 // structure of superblock in memomry
@@ -57,7 +64,8 @@ struct beanfs_sb_info {
     uint32_t s_free_datablocks_count;
     uint32_t s_free_inodes_count;
     
-    struct free_blocks_lists s_free_blocks_lists;
+    struct free_datablocks_group s_free_datablocks_group;
+    struct free_inodes_group s_free_inodes_group;
     
     uint32_t s_first_data_block;             // first data block
     uint32_t s_first_inode_block;            // first inode
@@ -67,7 +75,7 @@ struct beanfs_sb_info {
     
     uint8_t s_ismodified;                    // flag for wheather modified
     uint32_t s_mtime;                        // modified time stamp
-    uint32_t s_ctime;
+    uint32_t s_birthtime;
 };
 
 
@@ -131,5 +139,9 @@ struct beanfs_dir_entry {
     char d_name[MAX_ENTRY_NAME];                // 5; name_length
     char d_file_type;                           // 25; file type 'd' or 's' or '-'
 };                                              // 26; bytes
- 
+
+/* function for call
+ */
+int init_beanfs(uint32_t blocks, FILE *virtual_device);
+
 #endif

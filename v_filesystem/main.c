@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "util.h"
+#include "beanfs.h"
 
 int main(void)
 {
@@ -18,6 +19,13 @@ int main(void)
     void show_main_menu();
     char choice = '\0';
     
+    FILE *virtual_device = NULL;
+    system("dd if=/dev/zero of=virtual_device bs=512 count=100");
+    virtual_device = fopen("virtual_device", "wb");
+    init_beanfs(100, virtual_device);
+    fclose(virtual_device);
+    // -------------------------------------------------------
+    // -------------------------------------------------------
     while (1) {
         vfs_exist = access(vfs_device, F_OK);
         show_main_menu(vfs_exist);
