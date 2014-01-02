@@ -18,11 +18,21 @@ int main(void)
     const char vfs_device[] = "virtual_device";
     void show_main_menu();
     char choice = '\0';
+    struct beanfs_super_block superblock;
+    struct beanfs_inode root_inode;
+    struct beanfs_dir root_dir;
     
     FILE *virtual_device = NULL;
     system("dd if=/dev/zero of=virtual_device bs=512 count=100");
-    virtual_device = fopen("virtual_device", "wb");
+    virtual_device = fopen("virtual_device", "wb+");
     init_beanfs(100, virtual_device);
+    printf("superblock resutl %d\n", read_superblock(&superblock, virtual_device));
+    printf("root inode result %d\n" ,read_block(&root_inode, superblock.s_first_inode_block, sizeof(struct beanfs_inode), 1, virtual_device));
+    printf("root dir resutl %d\n", read_block(&root_dir, root_inode.i_addr.d_addr[0], sizeof(struct beanfs_dir), 1, virtual_device));
+    printf("rootdir len %d", root_dir.len);
+    for (int i = 0; i < root_dir.len; i++) {
+        printf("filename %s ino %d \n", root_dir.entrys[i].d_name, root_dir.entrys[i].d_ino);
+    }
     fclose(virtual_device);
     // -------------------------------------------------------
     // -------------------------------------------------------

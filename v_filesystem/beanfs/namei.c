@@ -11,14 +11,7 @@
 #include <assert.h>
 #include <time.h>
 #include <string.h>
-//#include <stdint.h>
 #include "beanfs.h"
-
-#define SUPERBLOCKCOUNT 1
-#define BOOTBLOCKCOUNT 1
-#define FREE_DATABLOCKMG_BLOCK_COUNT 1
-#define FREE_INODESMG_BLOCK_COUNT 1
-#define FREE_SPACEMG_BLOCK_COUNT 2
 
 
 static void create_free_blocks_group(struct beanfs_super_block *sbp, struct free_blocks_group *fbg_p, int groups_counts[])
@@ -48,7 +41,7 @@ static void create_free_blocks_group(struct beanfs_super_block *sbp, struct free
     }
 }
 
-static void create_root_dir(struct beanfs_super_block *sbp, struct beanfs_inode *rip, struct beanfs_dir_entry entrys[])
+static void create_root_dir(struct beanfs_super_block *sbp, struct beanfs_inode *rip, struct beanfs_dir *dir)
 {
     (sbp->s_free_datablocks_count)--;
     (sbp->s_free_inodes_count)--;
@@ -56,13 +49,12 @@ static void create_root_dir(struct beanfs_super_block *sbp, struct beanfs_inode 
     rip->i_mode = 0755;
     rip->i_uid = 0;                           // onwer root
     rip->i_gid = 0;                           // group root
-    rip->i_file_type = 'd';
-    rip->i_addr.i_db_offset[0] = 0;           // first data block is for root dir
-    rip->i_addr.i_db_offset[1] = 0;
-    rip->i_addr.i_db_offset[2] = 0;
-    rip->i_addr.i_db_offset[3] = 0;
-    rip->i_addr.i_id_offset[0] = 0;
-    rip->i_addr.i_id_offset[1] = 0;
+    rip->i_addr.d_addr[0] = sbp->s_first_data_block;           // first data block is for root dir
+    rip->i_addr.d_addr[1] = 0;
+    rip->i_addr.d_addr[2] = 0;
+    rip->i_addr.d_addr[3] = 0;
+    rip->i_addr.id_addr[0] = 0;
+    rip->i_addr.id_addr[1] = 0;
     rip->i_size = 0;                           // zero byte
     rip->i_blocks = 1;                         // one data block for initial root
     rip->i_links = 0;
@@ -71,52 +63,36 @@ static void create_root_dir(struct beanfs_super_block *sbp, struct beanfs_inode 
     rip->i_ctime = rip->i_birthtime;
     rip->i_mtime = rip->i_birthtime;
     
-    // init entrys
-    entrys[0].d_file_type = 'd';
-    entrys[1].d_file_type = 'd';
-    entrys[0].d_ino = 0;
-    entrys[1].d_ino = 0;
-    entrys[0].d_length = 26;
-    entrys[1].d_length = 26;
-    strcpy(entrys[0].d_name, ".");
-    strcpy(entrys[1].d_name, "..");
+    // init dot and dotdot
+    dir->len = 2;
+    dir->entrys[0].d_file_type = 'd';
+    dir->entrys[1].d_file_type = 'd';
+    dir->entrys[0].d_ino = 0;
+    dir->entrys[1].d_ino = 0;
+    strcpy(dir->entrys[0].d_name, ".");
+    strcpy(dir->entrys[1].d_name, "..");
 }
 
-static void create_raw_sb(struct beanfs_super_block *sbp, uint32_t blocks)
-{
-    sbp->s_blocks_count = blocks;                                   // total disk blocks
-    sbp->s_inodes_count = blocks / 10;                              // block number >= 10
-    sbp->s_datablocks_count = sbp->s_blocks_count - BOOTBLOCKCOUNT - SUPERBLOCKCOUNT - FREE_SPACEMG_BLOCK_COUNT - sbp->s_inodes_count;
-    sbp->s_free_datablocks_count = sbp->s_datablocks_count;
-    sbp->s_free_inodes_count = sbp->s_inodes_count;
-    sbp->s_free_datablocksmg_block = BOOTBLOCKCOUNT + SUPERBLOCKCOUNT;
-    sbp->s_free_inodesmg_block = sbp->s_free_datablocksmg_block + FREE_DATABLOCKMG_BLOCK_COUNT;
-    sbp->s_first_inode_block = sbp->s_free_inodesmg_block + FREE_INODESMG_BLOCK_COUNT;
-    sbp->s_first_data_block = sbp->s_first_inode_block + sbp->s_inodes_count;
-    sbp->s_birthtime = (uint32_t)time(NULL);                            // superblock created time
-    sbp->s_mtime = sbp->s_birthtime;
-}
-
-static int write2block(const void *buffer, long disk_block, size_t size, size_t count, FILE *vdevice)
+int write2block(const void *buffer, long dst_block, size_t size, size_t count, FILE *vdevice)
 {
     int seekresult = 0;
-    size_t writeresult = 0;
-    int result = 0;
-    seekresult = fseek(vdevice, disk_block * BLOCK_SIZE, SEEK_SET);
-    writeresult = fwrite(buffer, size, count, vdevice);
+    int writeresult = 0;
+    int status = 0;
+    seekresult = fseek(vdevice, dst_block * BLOCK_SIZE, SEEK_SET);
+    writeresult = (int)fwrite(buffer, size, count, vdevice);
     
     if (seekresult == 0 && writeresult > 0) {
-        result = 0;                     // correct
+        status = writeresult;                     // write successed
     } else {
-        result = 1;                     // error
+        status = -1;                              // failed
     }
     
-    return result;
+    return status;
 }
 
 static void write2vdevice(struct beanfs_super_block *sbp, int fbg_counts[],
                           struct free_blocks_group *fbg_p, struct beanfs_inode *rip,
-                          struct beanfs_dir_entry r_entrys[], FILE *vdevice)
+                          struct beanfs_dir *dir, FILE *vdevice)
 {
     // write boot
     char bootblock[BLOCK_SIZE] = {0};
@@ -207,7 +183,7 @@ static void write2vdevice(struct beanfs_super_block *sbp, int fbg_counts[],
     
     // write root dir
     write2block(rip, sbp->s_first_inode_block, sizeof(struct beanfs_super_block), 1, vdevice);
-    write2block(r_entrys, sbp->s_first_data_block, sizeof(struct beanfs_dir_entry), 2, vdevice);
+    write2block(dir, sbp->s_first_data_block, sizeof(struct beanfs_dir), 1,vdevice);
 }
 
 int init_beanfs(uint32_t blocks, FILE *virtual_device)
@@ -215,21 +191,55 @@ int init_beanfs(uint32_t blocks, FILE *virtual_device)
     assert(blocks >= 10);
     struct beanfs_super_block sb;
     struct beanfs_inode root_inode;
-    struct beanfs_dir_entry root_dir_entrys[2];                 // rootdir entry
+    struct beanfs_dir root_dir;                 // rootdir entry
     int free_blocks_groups_counts[2] = {0, 0};                  // counts groups respectively [0] for data_block and [1] for inode
     struct free_blocks_group free_blocks_group;
     
     
     create_raw_sb(&sb, blocks);
-    create_root_dir(&sb, &root_inode, root_dir_entrys);
+    create_root_dir(&sb, &root_inode, &root_dir);
     create_free_blocks_group(&sb, &free_blocks_group, free_blocks_groups_counts);
     
     assert(sizeof(struct beanfs_super_block) <= BLOCK_SIZE);
-    //assert(sizeof(struct free_blocks_group) <= BLOCK_SIZE);
     assert(sizeof(struct beanfs_inode) <= BLOCK_SIZE);
-    assert(2 * sizeof(struct beanfs_dir_entry) <= BLOCK_SIZE);
+    assert(sizeof(struct beanfs_dir) <= BLOCK_SIZE);
     write2vdevice(&sb, free_blocks_groups_counts, &free_blocks_group,
-                  &root_inode, root_dir_entrys, virtual_device);
+                  &root_inode, &root_dir, virtual_device);
     return 0;
 }
+// ----------------------------------------------------------------------
+
+
+int read_block(void *buffer, long dst_block, size_t size , size_t count, FILE *v_device)
+{
+    int seekresult = 0;
+    int readresult = 0;
+    int status = 0;
+    seekresult = fseek(v_device, dst_block * BLOCK_SIZE, SEEK_SET);
+    readresult = (int)fread(buffer, size, count, v_device);
+    
+    if (seekresult == 0 && readresult > 0) {
+        status = readresult;                // read successed
+    } else {
+        status = -1;                        // failed
+    }
+    return status;
+}
+
+static int read_data_block(struct beanfs_sb_info *sb_info_p, void *buffer, uint32_t block_addr, FILE *v_device)
+{
+    int status = 0;
+    // check wheather block addr out of data block index
+    if (block_addr >= sb_info_p->s_first_data_block && block_addr <= sb_info_p->s_first_data_block + sb_info_p->s_datablocks_count - 1) {
+        // read data block
+        status = read_block(buffer, block_addr, sizeof(char), BLOCK_SIZE, v_device);
+    } else {
+        status = -1;
+    }
+    return status;                              // return the number of byte read
+}
+
+
+
+
 

@@ -28,6 +28,21 @@
       shouldUseLaunchSchemeArgsEnv = "YES"
       buildConfiguration = "Debug">
       <Testables>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "D721F8831871C96F00EAF9E7"
+               BuildableName = "v_filesystem unit_Tests.xctest"
+               BlueprintName = "v_filesystem unit_Tests"
+               ReferencedContainer = "container:v_filesystem.xcodeproj">
+            </BuildableReference>
+            <SkippedTests>
+               <Test
+                  Identifier = "v_filesystem_unit_Tests/testExample">
+               </Test>
+            </SkippedTests>
+         </TestableReference>
       </Testables>
       <MacroExpansion>
          <BuildableReference
