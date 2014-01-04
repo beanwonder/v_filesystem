@@ -71,6 +71,8 @@ struct beanfs_sb_info {
     uint32_t s_free_datablocks_count;
     uint32_t s_free_inodes_count;
     
+    uint32_t s_free_datablocksmg_block;              // block position for free lists group; boot, superblock, free_datablock_spacemg_block
+    uint32_t s_free_inodesmg_block;                  // then come freeinodes space manage block
     struct free_datablocks_group s_free_datablocks_group;
     struct free_inodes_group s_free_inodes_group;
     
@@ -154,10 +156,13 @@ struct beanfs_dir {
 
 /* function for call
  */
+
 extern void create_raw_sb(struct beanfs_super_block *sbp, uint32_t blocks);
 extern int read_superblock(struct beanfs_super_block *sbp, FILE *v_device);
 extern int write2block(const void *buffer, long dst_block, size_t size, size_t count, FILE *vdevice);
 extern int init_beanfs(uint32_t blocks, FILE *virtual_device);
 extern int read_block(void *buffer, long dst_block, size_t size , size_t count, FILE *v_device);
+extern int beanfs_read_inode(struct beanfs_sb_info *sb_info_p, struct beanfs_inode *inode_p, uint32_t inode_addr, FILE *v_device);
+
 
 #endif

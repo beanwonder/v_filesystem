@@ -191,7 +191,7 @@ int init_beanfs(uint32_t blocks, FILE *virtual_device)
     assert(blocks >= 10);
     struct beanfs_super_block sb;
     struct beanfs_inode root_inode;
-    struct beanfs_dir root_dir;                 // rootdir entry
+    struct beanfs_dir root_dir;                                 // rootdir entry
     int free_blocks_groups_counts[2] = {0, 0};                  // counts groups respectively [0] for data_block and [1] for inode
     struct free_blocks_group free_blocks_group;
     
