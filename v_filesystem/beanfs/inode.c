@@ -154,16 +154,25 @@ struct beanfs_inode_info *beanfs_alloc_inode(struct beanfs_sb_info *sb_info_p, F
 int beanfs_i_callback(struct beanfs_sb_info *sb_info_p, struct beanfs_inode_info *callback_i, FILE *v_device)
 {
     int status = -1;
-    uint32_t ino = 0;
-    
+    uint32_t inode_addr = 0;
+    struct free_inodes_group tmp_inodes_group = {0, {0}};
     if (sb_info_p != NULL && callback_i != NULL) {
         // callback the inode
-        ino = callback_i->i_ino;
+        inode_addr = sb_info_p->s_first_inode_block + callback_i->i_ino;
+        
         if (sb_info_p->s_free_inodes_group.top < FREE_INODES_LIST_SIZE) {
-            <#statements-if-true#>
+            sb_info_p->s_free_inodes_group.top++;
+            sb_info_p->s_free_inodes_group.list[sb_info_p->s_free_inodes_group.top] = inode_addr;
         } else {
-            <#statements-if-false#>
+            // first inode group is full then create a new inode group as first inode group
+            tmp_inodes_group.list[0] = sb_info_p->s_free_inodes_group.list[0];
+            sb_info_p->s_free_inodes_group = tmp_inodes_group;
+            
         }
+        sb_info_p->s_free_inodes_count++;
+        // write back to disk
+        write2block(&sb_info_p->s_free_inodes_group, sb_info_p->s_free_inodesmg_block, sizeof(struct free_inodes_group), 1, v_device);
+        status = 1;                                                                 // callback success
     }
     return status;
 }
