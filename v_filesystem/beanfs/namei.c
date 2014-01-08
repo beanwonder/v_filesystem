@@ -238,8 +238,3 @@ static int read_data_block(struct beanfs_sb_info *sb_info_p, void *buffer, uint3
     }
     return status;                              // return the number of byte read
 }
-
-
-
-
-

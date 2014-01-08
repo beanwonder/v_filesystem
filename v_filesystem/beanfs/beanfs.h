@@ -154,7 +154,7 @@ struct beanfs_dir {
     struct beanfs_dir_entry entrys[MAX_ENTRY];
 };
 
-/* function for call
+/* functions as interface for other program
  */
 
 extern void create_raw_sb(struct beanfs_super_block *sbp, uint32_t blocks);
@@ -163,6 +163,7 @@ extern int write2block(const void *buffer, long dst_block, size_t size, size_t c
 extern int init_beanfs(uint32_t blocks, FILE *virtual_device);
 extern int read_block(void *buffer, long dst_block, size_t size , size_t count, FILE *v_device);
 extern int beanfs_read_inode(struct beanfs_sb_info *sb_info_p, struct beanfs_inode *inode_p, uint32_t inode_addr, FILE *v_device);
+extern int beanfs_i_callback(struct beanfs_sb_info *sb_info_p, struct beanfs_inode_info *callback_i, FILE *v_device);
 
 
 #endif

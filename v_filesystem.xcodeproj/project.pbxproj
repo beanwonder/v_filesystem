@@ -15,6 +15,7 @@
 		D721F8A018758B2B00EAF9E7 /* inode.c in Sources */ = {isa = PBXBuildFile; fileRef = D721F89F18758B2B00EAF9E7 /* inode.c */; };
 		D75DD61218503EBB00519EB3 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = D75DD61118503EBB00519EB3 /* main.c */; };
 		D75DD61418503EBB00519EB3 /* v_filesystem.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = D75DD61318503EBB00519EB3 /* v_filesystem.1 */; };
+		D79D866C1879B78400AFD401 /* balloc.c in Sources */ = {isa = PBXBuildFile; fileRef = D79D866B1879B78400AFD401 /* balloc.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -39,9 +40,10 @@
 		D707065C186D1E690046533A /* super.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = super.c; path = beanfs/super.c; sourceTree = "<group>"; };
 		D707065E186D27460046533A /* namei.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = namei.c; path = beanfs/namei.c; sourceTree = "<group>"; };
 		D721F89F18758B2B00EAF9E7 /* inode.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = inode.c; path = beanfs/inode.c; sourceTree = "<group>"; };
-		D75DD60E18503EBB00519EB3 /* v_filesystem */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = v_filesystem; path = /Users/bingo/myfiles/programme/v_filesystem/build/Debug/v_filesystem; sourceTree = "<absolute>"; };
 		D75DD61118503EBB00519EB3 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		D75DD61318503EBB00519EB3 /* v_filesystem.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = v_filesystem.1; sourceTree = "<group>"; };
+		D79D86681876A00900AFD401 /* v_filesystem */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = v_filesystem; sourceTree = BUILT_PRODUCTS_DIR; };
+		D79D866B1879B78400AFD401 /* balloc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = balloc.c; path = beanfs/balloc.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,6 +60,7 @@
 		D7070656186D19A50046533A /* beanfs */ = {
 			isa = PBXGroup;
 			children = (
+				D79D866B1879B78400AFD401 /* balloc.c */,
 				D721F89F18758B2B00EAF9E7 /* inode.c */,
 				D7070657186D19EE0046533A /* beanfs.h */,
 				D7070658186D19EE0046533A /* file.c */,
@@ -72,6 +75,7 @@
 			isa = PBXGroup;
 			children = (
 				D75DD61018503EBB00519EB3 /* v_filesystem */,
+				D79D86681876A00900AFD401 /* v_filesystem */,
 			);
 			sourceTree = "<group>";
 		};
@@ -104,7 +108,7 @@
 			);
 			name = v_filesystem;
 			productName = v_filesystem;
-			productReference = D75DD60E18503EBB00519EB3 /* v_filesystem */;
+			productReference = D79D86681876A00900AFD401 /* v_filesystem */;
 			productType = "com.apple.product-type.tool";
 		};
 /* End PBXNativeTarget section */
@@ -144,6 +148,7 @@
 				D707064A186C4F1B0046533A /* util.c in Sources */,
 				D7070659186D19EE0046533A /* file.c in Sources */,
 				D707065D186D1E690046533A /* super.c in Sources */,
+				D79D866C1879B78400AFD401 /* balloc.c in Sources */,
 				D721F8A018758B2B00EAF9E7 /* inode.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

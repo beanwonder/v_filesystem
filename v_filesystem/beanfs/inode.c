@@ -24,7 +24,31 @@ static int init_inode_info(struct beanfs_inode_info *inode_info_p, int ino)
     return status;
 }
 
-// beanfs_inode to beanfs_inode_info
+static uint32_t beanfs_get_inode(struct beanfs_sb_info *sb_info_p, FILE *v_device)
+{
+    uint32_t ino = UINT32_MAX;
+    uint32_t inode_addr = 0;
+    int tmptop = -1;
+    
+    if (sb_info_p->s_free_inodes_count) {
+        // still have free node
+        sb_info_p->s_free_inodes_count--;
+        tmptop = sb_info_p->s_free_inodes_group.top--;
+        inode_addr = sb_info_p->s_free_inodes_group.list[tmptop];
+        // check weather top == 0
+        if (sb_info_p->s_free_inodes_group.top < 0) {
+            // need to get next group
+            read_block(&sb_info_p->s_free_inodes_group, inode_addr, sizeof(struct free_inodes_group), 1, v_device);
+            // write back to first free inode block
+            write2block(&sb_info_p->s_free_inodes_group, sb_info_p->s_free_inodesmg_block, sizeof(struct free_inodes_group), 1, v_device);
+        }
+        ino = inode_addr - sb_info_p->s_first_inode_block;      // ino >= 0 here && < UINT32_MAX
+    }
+    return ino;                                 // return UINT32_MAX if not enough inode
+}
+
+/* beanfs_inode to beanfs_inode_info
+ */
 int beanfs_transform2inode_info(struct beanfs_inode *inode_p,
                                 struct beanfs_inode_info *inode_info_p)
 {
@@ -112,61 +136,42 @@ int beanfs_read_inode(struct beanfs_sb_info *sb_info_p, struct beanfs_inode *ino
     return status;
 }
 
-static int beanfs_get_inode(struct beanfs_sb_info *sb_info_p, FILE *v_device)
+uint32_t beanfs_alloc_inode(struct beanfs_sb_info *sb_info_p, struct beanfs_inode_info *ei ,FILE *v_device)
 {
-    int ino = -1;
-    uint32_t inode_addr = 0;
-    int tmptop = -1;
-
-    if (sb_info_p->s_free_inodes_count) {
-        // still have free node
-        sb_info_p->s_free_inodes_count--;
-        tmptop = sb_info_p->s_free_inodes_group.top--;
-        inode_addr = sb_info_p->s_free_inodes_group.list[tmptop];
-        // check weather top == 0
-        if (sb_info_p->s_free_inodes_group.top < 0) {
-            // need to get next group
-            read_block(&sb_info_p->s_free_inodes_group, inode_addr, sizeof(struct free_inodes_group), 1, v_device);
-            // write back to first free inode block
-            write2block(&sb_info_p->s_free_inodes_group, sb_info_p->s_free_inodesmg_block, sizeof(struct free_inodes_group), 1, v_device);
-        }
-        ino = inode_addr - sb_info_p->s_first_inode_block;      // ino >= 0 here
-    }
-    return ino;                                 // return -1 if not enough inode
-}
-
-struct beanfs_inode_info *beanfs_alloc_inode(struct beanfs_sb_info *sb_info_p, FILE *v_device)
-{
-    int ino = -1;
-    struct beanfs_inode_info *ei = NULL;
-    if (sb_info_p == NULL) {
-        return NULL;
+    uint32_t ino = UINT32_MAX;
+    //struct beanfs_inode_info *ei = NULL;
+    if (sb_info_p == NULL || v_device != NULL) {
+        return ino;
     }
     if (sb_info_p->s_free_inodes_count > 0) {
         //allocate inode assert free inode count > 0 then do getinode
         ino = beanfs_get_inode(sb_info_p, v_device);
-        ei = (struct beanfs_inode_info *)malloc(sizeof(struct beanfs_inode_info));
+        //ei = (struct beanfs_inode_info *)malloc(sizeof(struct beanfs_inode_info));
         init_inode_info(ei, ino);
     }
-    return ei;          // return NULL if didn't allocate inode
+    
+    return ino;          // return inode number if success
+                         // return UINT32_MAX if allocation failed
 }
 
 int beanfs_i_callback(struct beanfs_sb_info *sb_info_p, struct beanfs_inode_info *callback_i, FILE *v_device)
 {
     int status = -1;
     uint32_t inode_addr = 0;
-    struct free_inodes_group tmp_inodes_group = {0, {0}};
-    if (sb_info_p != NULL && callback_i != NULL) {
+    // struct free_inodes_group tmp_inodes_group = {0, {0}};
+    if (sb_info_p != NULL && callback_i != NULL && v_device != NULL) {
         // callback the inode
         inode_addr = sb_info_p->s_first_inode_block + callback_i->i_ino;
         
         if (sb_info_p->s_free_inodes_group.top < FREE_INODES_LIST_SIZE) {
-            sb_info_p->s_free_inodes_group.top++;
-            sb_info_p->s_free_inodes_group.list[sb_info_p->s_free_inodes_group.top] = inode_addr;
+            sb_info_p->s_free_inodes_group.list[++(sb_info_p->s_free_inodes_group.top)] = inode_addr;
         } else {
             // first inode group is full then create a new inode group as first inode group
-            tmp_inodes_group.list[0] = sb_info_p->s_free_inodes_group.list[0];
-            sb_info_p->s_free_inodes_group = tmp_inodes_group;
+            write2block(&sb_info_p->s_free_inodes_group, inode_addr, sizeof(struct free_inodes_group), 1, v_device);
+            sb_info_p->s_free_inodes_group.top = 0;
+            sb_info_p->s_free_inodes_group.list[0] = inode_addr;
+            //tmp_inodes_group.list[0] = sb_info_p->s_free_inodes_group.list[0];
+            //sb_info_p->s_free_inodes_group = tmp_inodes_group;
             
         }
         sb_info_p->s_free_inodes_count++;
