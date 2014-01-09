@@ -29,10 +29,9 @@ int beanfs_create_file(const char filename[], struct beanfs_sb_info *sb_info_p, 
         }
         // if run until here, comes the last block recording dir information
         if (dirinfo.len < MAX_ENTRY) {
-            <#statements#>
+            
         }
         
     }
-    
     return status;
 }
