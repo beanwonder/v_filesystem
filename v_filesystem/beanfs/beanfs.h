@@ -24,7 +24,7 @@
 #define BEANFS_ROOT_INODE_OFFSET
 #define FREE_DATABLOCKS_LIST_SIZE 100
 #define FREE_INODES_LIST_SIZE 100
-
+#define DIR_MAX_BLOCK 4
 
 // structure of the superblock on virtual
 // using logical block address from 0 to user defined number
@@ -143,7 +143,6 @@ struct beanfs_inode_info {
 #define MAX_ENTRY_NAME 20
 #define MAX_ENTRY 18
 struct beanfs_dir_entry {
-    
     uint32_t d_ino;                             // 0; inode number in inodes
     char d_name[MAX_ENTRY_NAME];                // 5; name_length
     char d_file_type;                           // 25; file type 'd' or 's' or '-'
@@ -166,7 +165,10 @@ extern void create_raw_sb(struct beanfs_super_block *sbp, uint32_t blocks);
 extern int read_superblock(struct beanfs_super_block *sbp, FILE *v_device);
 extern int write2block(const void *buffer, long dst_block, size_t size, size_t count, FILE *vdevice);
 extern int init_beanfs(uint32_t blocks, FILE *virtual_device);
+
 extern int read_block(void *buffer, long dst_block, size_t size , size_t count, FILE *v_device);
+extern int read_data_block(struct beanfs_sb_info *sb_info_p, void *buffer, uint32_t block_addr, FILE *v_device);
+
 extern int beanfs_read_inode(struct beanfs_sb_info *sb_info_p, struct beanfs_inode *inode_p, uint32_t inode_addr, FILE *v_device);
 extern int beanfs_i_callback(struct beanfs_sb_info *sb_info_p, struct beanfs_inode_info *callback_i, FILE *v_device);
 

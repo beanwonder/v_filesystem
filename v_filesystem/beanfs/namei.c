@@ -223,7 +223,7 @@ int read_block(void *buffer, long dst_block, size_t size , size_t count, FILE *v
     return status;
 }
 
-static int read_data_block(struct beanfs_sb_info *sb_info_p, void *buffer, uint32_t block_addr, FILE *v_device)
+int read_data_block(struct beanfs_sb_info *sb_info_p, void *buffer, uint32_t block_addr, FILE *v_device)
 {
     int status = 0;
     // check wheather block addr out of data block index

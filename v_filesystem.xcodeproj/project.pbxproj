@@ -60,9 +60,9 @@
 		D7070656186D19A50046533A /* beanfs */ = {
 			isa = PBXGroup;
 			children = (
+				D7070657186D19EE0046533A /* beanfs.h */,
 				D79D866B1879B78400AFD401 /* balloc.c */,
 				D721F89F18758B2B00EAF9E7 /* inode.c */,
-				D7070657186D19EE0046533A /* beanfs.h */,
 				D7070658186D19EE0046533A /* file.c */,
 				D707065A186D1A010046533A /* dir.c */,
 				D707065C186D1E690046533A /* super.c */,
