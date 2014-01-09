@@ -6,7 +6,6 @@
 //  Copyright (c) 2014 WONDER. All rights reserved.
 //
 
-#include <stdio.h>
 #include "beanfs.h"
 
 static uint32_t get_datablock_addr(struct beanfs_sb_info *sb_info_p, FILE *v_device)

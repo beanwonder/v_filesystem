@@ -6,8 +6,6 @@
 //  Copyright (c) 2013 WONDER. All rights reserved.
 //
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <assert.h>
 #include <time.h>
 #include <string.h>
@@ -208,7 +206,6 @@ int init_beanfs(uint32_t blocks, FILE *virtual_device)
     return 0;
 }
 // ----------------------------------------------------------------------
-
 
 int read_block(void *buffer, long dst_block, size_t size , size_t count, FILE *v_device)
 {

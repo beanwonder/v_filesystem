@@ -154,6 +154,11 @@ struct beanfs_dir {
     struct beanfs_dir_entry entrys[MAX_ENTRY];
 };
 
+struct beanfs_file {
+    struct beanfs_inode_info inode_info;
+    int64_t cur_ptr;    // poniter to current byte in the file
+};
+
 /* functions as interface for other program
  */
 

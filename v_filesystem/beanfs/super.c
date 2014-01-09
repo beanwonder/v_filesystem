@@ -6,7 +6,6 @@
 //  Copyright (c) 2013 WONDER. All rights reserved.
 //
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include "beanfs.h"
