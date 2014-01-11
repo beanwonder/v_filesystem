@@ -26,10 +26,27 @@ int main(void)
     system("dd if=/dev/zero of=virtual_device bs=512 count=100");
     virtual_device = fopen("virtual_device", "wb+");
     init_beanfs(100, virtual_device);
+    
     printf("superblock resutl %d\n", read_superblock(&superblock, virtual_device));
     printf("root inode result %d\n" ,read_block(&root_inode, superblock.s_first_inode_block, sizeof(struct beanfs_inode), 1, virtual_device));
+    // ---------------------------------------------------
+    struct beanfs_dir_entry new_entry = {UINT32_MAX, "fuck", '-'};
+    struct beanfs_inode_info r_inode_info_p;
+    struct beanfs_sb_info sb_info;
+    struct beanfs_inode_info i_info_p;
+    beanfs_transform2inode_info(&root_inode, &r_inode_info_p);
+    beanfs_transform2sb_info(&superblock, &sb_info, virtual_device);
+    
+    new_entry.d_ino = beanfs_alloc_inode(&sb_info, &i_info_p, virtual_device);
+    update_superblock(&sb_info, &superblock, virtual_device);
+    
+    beanfs_add_entry(&new_entry, &sb_info, &r_inode_info_p, virtual_device);
+    //beanfs_add_entry(&new_entry, &sb_info, &r_inode_info_p, virtual_device);
+    update_superblock(&sb_info, &superblock, virtual_device);
+    
+    // --------------------------------------------------------------------
     printf("root dir resutl %d\n", read_block(&root_dir, root_inode.i_addr.d_addr[0], sizeof(struct beanfs_dir), 1, virtual_device));
-    printf("rootdir len %d", root_dir.len);
+    printf("rootdir len %d \n", root_dir.len);
     for (int i = 0; i < root_dir.len; i++) {
         printf("filename %s ino %d \n", root_dir.entrys[i].d_name, root_dir.entrys[i].d_ino);
     }
