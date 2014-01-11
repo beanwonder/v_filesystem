@@ -34,7 +34,7 @@ int main(void)
     struct beanfs_inode_info r_inode_info_p;
     struct beanfs_sb_info sb_info;
     struct beanfs_inode_info i_info_p;
-    beanfs_transform2inode_info(&root_inode, &r_inode_info_p);
+    beanfs_transform2inode_info(&root_inode, &r_inode_info_p, 0);
     beanfs_transform2sb_info(&superblock, &sb_info, virtual_device);
     
     new_entry.d_ino = beanfs_alloc_inode(&sb_info, &i_info_p, virtual_device);

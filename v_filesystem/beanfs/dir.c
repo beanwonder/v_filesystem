@@ -48,4 +48,40 @@ int beanfs_add_entry(struct beanfs_dir_entry *new_entry, struct beanfs_sb_info *
     return status;
 }
 
+int beanfs_delete_entry(const char fname[], struct beanfs_sb_info *sb_info_p,
+                        struct beanfs_inode_info *d_inode_p, struct beanfs_dir_entry *deleted_entry,
+                        FILE *v_device)
+{
+    int status = -1;
+    struct beanfs_dir curdir = {0};
+    uint32_t dir_addr = UINT32_MAX;
+    int8_t entry_count = 0;
+    
+    dir_addr = d_inode_p->i_addr.d_addr[0];
+    status = read_block(&curdir, dir_addr, sizeof(struct beanfs_dir), 1, v_device);
+    if (status > 0) {
+        // iterator curdir
+        for (entry_count = 0; entry_count < curdir.len; entry_count++) {
+            if (strcmp(curdir.entrys[entry_count].d_name, fname) == 0) {
+                // find the entry to be delete
+                *deleted_entry = curdir.entrys[entry_count];
+                curdir.len--;
+                for (int8_t i = entry_count; i < curdir.len; i++) {
+                    curdir.entrys[i] = curdir.entrys[i + 1];
+                }
+                break;
+            }
+        }
+        if (entry_count < curdir.len) {
+            status = 1;
+        } else {
+            deleted_entry->d_name[0] = '\0';
+            deleted_entry->d_ino = UINT32_MAX;
+            deleted_entry->d_file_type = '\0';
+            fprintf(stderr, "No such file ( %s ) or directory", fname);
+        }
+    }
+    return status;
+}
+
 
