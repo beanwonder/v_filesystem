@@ -110,51 +110,60 @@ int beanfs_lookup(char full_path[], struct beanfs_sb_info *sb_info_p, struct bea
     struct beanfs_dir cur_search_dir;
     struct beanfs_dir_entry tmp_entry = {0};
     
-        // transform root inode
+    // transform root inode
     left_sep_pos = full_path;
     right_sep_pos = full_path;
-    // init root search path
+    // init root as search path
     beanfs_read_inode(sb_info_p, &search_inode, search_ino, v_device);
     beanfs_transform2inode_info(&search_inode, &search_inode_info, search_ino);
     read_block(&cur_search_dir, search_inode_info.i_addr.d_addr[0], sizeof(struct beanfs_dir), 1, v_device);
     
-    while (left_sep_pos != NULL) {
-        right_sep_pos = strpbrk(left_sep_pos, pathsep);
+    do {
+        
+        right_sep_pos = strpbrk(left_sep_pos + 1, pathsep);
         if (right_sep_pos == NULL) {
             strcpy(search_fname, left_sep_pos + 1);
         } else {
-            strncpy(search_fname, left_sep_pos + 1, right_sep_pos - left_sep_pos - 1);
+            if (left_sep_pos[1] != '\0') {
+                strncpy(search_fname, left_sep_pos + 1, right_sep_pos - left_sep_pos - 1);
+                search_fname[right_sep_pos - left_sep_pos - 1] = '\0';
+            } else {
+                search_fname[0] = '\0';
+            }
         }
         
-        if (search_fname != '\0') {
-            if (search_inode_info.i_ino == 0 || tmp_entry.d_file_type == 'd') {
-                if (search_dir_entry(search_fname, &cur_search_dir, &tmp_entry)) {
-                    // set next path to search
-                    beanfs_read_inode(sb_info_p, &search_inode, sb_info_p->s_first_inode_block + tmp_entry.d_ino, v_device);
-                    beanfs_transform2inode_info(&search_inode, &search_inode_info, tmp_entry.d_ino);
-                    read_block(&cur_search_dir, search_inode_info.i_addr.d_addr[0], sizeof(struct beanfs_dir), 1, v_device);
-                }
-            } else {
-                fprintf(stderr, " not a directory: %s \n", full_path);
-            }
-        } else {
-            if (search_inode_info.i_ino == 0 || tmp_entry.d_file_type == 'd') {
-                *entry_p = tmp_entry;
+        if (search_fname[0] != '\0') {
+            if (search_dir_entry(search_fname, &cur_search_dir, &tmp_entry) && tmp_entry.d_file_type == 'd') {
+                beanfs_read_inode(sb_info_p, &search_inode, tmp_entry.d_ino, v_device);
+                beanfs_transform2inode_info(&search_inode, &search_inode_info, tmp_entry.d_ino);
+                read_block(&cur_search_dir, search_inode_info.i_addr.d_addr[0], sizeof(struct beanfs_dir), 1, v_device);
                 status = 1;
             } else {
-                fprintf(stderr, " not a directory: %s \n", full_path);
+                if (right_sep_pos == NULL) {
+                    // reached end
+                    // find what u want
+                    status = 1;
+                } else {
+                    // can't find the file
+                    fprintf(stderr, " %s is not a valid path", full_path);
+                    status = -1;
+                }
+                break;
             }
             
-            left_sep_pos = NULL;    // set exit flag
+        } else {
+            status = 1;
         }
-    }
+        
+    } while (right_sep_pos != NULL);
     
     if (status == 1) {
         *entry_p = tmp_entry;
     } else {
         memset(entry_p, 0, sizeof(struct beanfs_dir_entry));
     }
-    // entry information must be combined with status
+    
     return status;
 }
+
 
