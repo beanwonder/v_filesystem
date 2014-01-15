@@ -14,7 +14,7 @@ static int search_dir_entry(char search_fname[], struct beanfs_dir *search_dir_p
 {
     int search_status = 0;
     for (int8_t i = 0; i < search_dir_p->len; i++) {
-        if (strcmp(search_fname, search_dir_p->entrys[i].d_name)) {
+        if (strcmp(search_fname, search_dir_p->entrys[i].d_name) == 0) {
             *entry_p = search_dir_p->entrys[i];
             search_status = 1;
             break;
@@ -101,6 +101,7 @@ int beanfs_lookup(char full_path[], struct beanfs_sb_info *sb_info_p, struct bea
 {
     int status = -1;
     uint32_t search_ino = 0;
+    int search_result = 0;
     char search_fname[MAX_ENTRY_NAME] = {'\0'};
     char *left_sep_pos = NULL;
     char *right_sep_pos = NULL;
@@ -108,18 +109,18 @@ int beanfs_lookup(char full_path[], struct beanfs_sb_info *sb_info_p, struct bea
     struct beanfs_inode search_inode;
     struct beanfs_inode_info search_inode_info;
     struct beanfs_dir cur_search_dir;
-    struct beanfs_dir_entry tmp_entry = {0};
+    struct beanfs_dir_entry tmp_entry = {0, "root", 'd'};
     
     // transform root inode
     left_sep_pos = full_path;
     right_sep_pos = full_path;
     // init root as search path
-    beanfs_read_inode(sb_info_p, &search_inode, search_ino, v_device);
+    // read root dir_info
+    beanfs_read_inode(sb_info_p, &search_inode, sb_info_p->s_first_inode_block + search_ino, v_device);
     beanfs_transform2inode_info(&search_inode, &search_inode_info, search_ino);
     read_block(&cur_search_dir, search_inode_info.i_addr.d_addr[0], sizeof(struct beanfs_dir), 1, v_device);
     
     do {
-        
         right_sep_pos = strpbrk(left_sep_pos + 1, pathsep);
         if (right_sep_pos == NULL) {
             strcpy(search_fname, left_sep_pos + 1);
@@ -127,19 +128,21 @@ int beanfs_lookup(char full_path[], struct beanfs_sb_info *sb_info_p, struct bea
             if (left_sep_pos[1] != '\0') {
                 strncpy(search_fname, left_sep_pos + 1, right_sep_pos - left_sep_pos - 1);
                 search_fname[right_sep_pos - left_sep_pos - 1] = '\0';
+                left_sep_pos = right_sep_pos;
             } else {
                 search_fname[0] = '\0';
             }
         }
         
         if (search_fname[0] != '\0') {
-            if (search_dir_entry(search_fname, &cur_search_dir, &tmp_entry) && tmp_entry.d_file_type == 'd') {
-                beanfs_read_inode(sb_info_p, &search_inode, tmp_entry.d_ino, v_device);
+            search_result = search_dir_entry(search_fname, &cur_search_dir, &tmp_entry);
+            if (search_result && tmp_entry.d_file_type == 'd') {
+                beanfs_read_inode(sb_info_p, &search_inode, sb_info_p->s_first_inode_block + tmp_entry.d_ino, v_device);
                 beanfs_transform2inode_info(&search_inode, &search_inode_info, tmp_entry.d_ino);
                 read_block(&cur_search_dir, search_inode_info.i_addr.d_addr[0], sizeof(struct beanfs_dir), 1, v_device);
                 status = 1;
             } else {
-                if (right_sep_pos == NULL) {
+                if (search_result && right_sep_pos == NULL) {
                     // reached end
                     // find what u want
                     status = 1;
@@ -153,6 +156,7 @@ int beanfs_lookup(char full_path[], struct beanfs_sb_info *sb_info_p, struct bea
             
         } else {
             status = 1;
+            break;
         }
         
     } while (right_sep_pos != NULL);
@@ -165,5 +169,3 @@ int beanfs_lookup(char full_path[], struct beanfs_sb_info *sb_info_p, struct bea
     
     return status;
 }
-
-

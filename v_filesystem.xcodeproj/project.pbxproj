@@ -84,8 +84,8 @@
 			children = (
 				D7070656186D19A50046533A /* beanfs */,
 				D75DD61118503EBB00519EB3 /* main.c */,
-				D7070649186C4F1B0046533A /* util.c */,
 				D707064B186C4F2E0046533A /* util.h */,
+				D7070649186C4F1B0046533A /* util.c */,
 				D75DD61318503EBB00519EB3 /* v_filesystem.1 */,
 			);
 			path = v_filesystem;

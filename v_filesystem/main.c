@@ -22,8 +22,12 @@ int main(void)
     struct beanfs_inode root_inode;
     struct beanfs_dir root_dir;
     
+    
     FILE *virtual_device = NULL;
     system("dd if=/dev/zero of=virtual_device bs=512 count=100");
+    
+    beanfs_shell(virtual_device);
+    
     virtual_device = fopen("virtual_device", "wb+");
     init_beanfs(100, virtual_device);
     
@@ -45,12 +49,17 @@ int main(void)
     update_superblock(&sb_info, &superblock, virtual_device);
     
     // --------------------------------------------------------------------
+    struct beanfs_dir_entry tmp_entry;
+    int find = 0;
+    find = beanfs_lookup("/fuck", &sb_info, &tmp_entry, virtual_device);
+    printf("found : %d ino %d \n", find, tmp_entry.d_ino);
+    
     printf("root dir resutl %d\n", read_block(&root_dir, root_inode.i_addr.d_addr[0], sizeof(struct beanfs_dir), 1, virtual_device));
     printf("rootdir len %d \n", root_dir.len);
     for (int i = 0; i < root_dir.len; i++) {
         printf("filename %s ino %d \n", root_dir.entrys[i].d_name, root_dir.entrys[i].d_ino);
     }
-    fclose(virtual_device);
+    //fclose(virtual_device);
     // -------------------------------------------------------
     // -------------------------------------------------------
     while (1) {
@@ -58,7 +67,7 @@ int main(void)
         show_main_menu(vfs_exist);
         printf("    please choose a number \n");
         
-        if (vfs_exist == 0) {
+        if (!vfs_exist) {
             do {
                 choice = getchar();
             } while (choice != '1' && choice != '2' && choice != '3');
@@ -66,6 +75,7 @@ int main(void)
             switch (choice) {
                 case '1':
                     printf("creating a filesystem \n");
+                    beanfs_mkfs(virtual_device);
                     //create_filesystem();
                     break;
                 case '2':
@@ -109,7 +119,7 @@ void show_main_menu(int vfs_exists)
     printf("*              here is the main memu                *\n");
     printf("*****************************************************\n");
     
-    if (vfs_exists == 0) {
+    if (!vfs_exists) {
         printf("*          1. create a brand new file system        *\n");
         printf("*          2. access existing file system           *\n");
         printf("*          3. exit                                  *\n");

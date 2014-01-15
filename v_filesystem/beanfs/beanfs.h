@@ -177,8 +177,8 @@ extern int beanfs_transform2inode_info(struct beanfs_inode *inode_p, struct bean
 extern uint32_t beanfs_alloc_inode(struct beanfs_sb_info *sb_info_p, struct beanfs_inode_info *ei ,FILE *v_device);
 extern int beanfs_i_callback(struct beanfs_sb_info *sb_info_p, struct beanfs_inode_info *callback_i, FILE *v_device);
 
+extern int beanfs_lookup(char full_path[], struct beanfs_sb_info *sb_info_p, struct beanfs_dir_entry *entry_p, FILE *v_device);
 extern uint32_t beanfs_alloc_datablock(struct beanfs_sb_info *sb_info_p, FILE *v_device);
 extern int beanfs_add_entry(struct beanfs_dir_entry *new_entry, struct beanfs_sb_info *sb_info_p,
                             struct beanfs_inode_info *d_inode_info_p, FILE *v_device);
-
 #endif
