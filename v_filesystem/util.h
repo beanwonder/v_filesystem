@@ -9,7 +9,7 @@
 #ifndef v_filesystem_util_h
 #define v_filesystem_util_h
 
-extern int beanfs_mkfs(FILE *v_device);
-extern void beanfs_shell(FILE *v_device);
+extern int beanfs_mkfs(const char vfs_device[]);
+extern void beanfs_shell(const char vfs_device[]);
 
 #endif

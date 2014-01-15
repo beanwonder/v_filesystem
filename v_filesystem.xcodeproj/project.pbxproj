@@ -16,6 +16,7 @@
 		D75DD61218503EBB00519EB3 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = D75DD61118503EBB00519EB3 /* main.c */; };
 		D75DD61418503EBB00519EB3 /* v_filesystem.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = D75DD61318503EBB00519EB3 /* v_filesystem.1 */; };
 		D79D866C1879B78400AFD401 /* balloc.c in Sources */ = {isa = PBXBuildFile; fileRef = D79D866B1879B78400AFD401 /* balloc.c */; };
+		D7A80D6E188661620050174D /* commands.c in Sources */ = {isa = PBXBuildFile; fileRef = D7A80D6D188661620050174D /* commands.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -44,6 +45,8 @@
 		D75DD61318503EBB00519EB3 /* v_filesystem.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = v_filesystem.1; sourceTree = "<group>"; };
 		D79D86681876A00900AFD401 /* v_filesystem */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = v_filesystem; sourceTree = BUILT_PRODUCTS_DIR; };
 		D79D866B1879B78400AFD401 /* balloc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = balloc.c; path = beanfs/balloc.c; sourceTree = "<group>"; };
+		D7A80D6D188661620050174D /* commands.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = commands.c; sourceTree = "<group>"; };
+		D7A80D6F188661780050174D /* commands.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = commands.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -85,7 +88,9 @@
 				D7070656186D19A50046533A /* beanfs */,
 				D75DD61118503EBB00519EB3 /* main.c */,
 				D707064B186C4F2E0046533A /* util.h */,
+				D7A80D6F188661780050174D /* commands.h */,
 				D7070649186C4F1B0046533A /* util.c */,
+				D7A80D6D188661620050174D /* commands.c */,
 				D75DD61318503EBB00519EB3 /* v_filesystem.1 */,
 			);
 			path = v_filesystem;
@@ -144,6 +149,7 @@
 			files = (
 				D707065F186D27460046533A /* namei.c in Sources */,
 				D75DD61218503EBB00519EB3 /* main.c in Sources */,
+				D7A80D6E188661620050174D /* commands.c in Sources */,
 				D707065B186D1A010046533A /* dir.c in Sources */,
 				D707064A186C4F1B0046533A /* util.c in Sources */,
 				D7070659186D19EE0046533A /* file.c in Sources */,

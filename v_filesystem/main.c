@@ -18,47 +18,44 @@ int main(void)
     const char vfs_device[] = "virtual_device";
     void show_main_menu();
     char choice = '\0';
-    struct beanfs_super_block superblock;
-    struct beanfs_inode root_inode;
-    struct beanfs_dir root_dir;
+    char terminater = '\0';
+//    struct beanfs_super_block superblock;
+//    struct beanfs_inode root_inode;
+//    struct beanfs_dir root_dir;
     
-    
-    FILE *virtual_device = NULL;
-    system("dd if=/dev/zero of=virtual_device bs=512 count=100");
-    
-    beanfs_shell(virtual_device);
-    
-    virtual_device = fopen("virtual_device", "wb+");
-    init_beanfs(100, virtual_device);
-    
-    printf("superblock resutl %d\n", read_superblock(&superblock, virtual_device));
-    printf("root inode result %d\n" ,read_block(&root_inode, superblock.s_first_inode_block, sizeof(struct beanfs_inode), 1, virtual_device));
-    // ---------------------------------------------------
-    struct beanfs_dir_entry new_entry = {UINT32_MAX, "fuck", '-'};
-    struct beanfs_inode_info r_inode_info_p;
-    struct beanfs_sb_info sb_info;
-    struct beanfs_inode_info i_info_p;
-    beanfs_transform2inode_info(&root_inode, &r_inode_info_p, 0);
-    beanfs_transform2sb_info(&superblock, &sb_info, virtual_device);
-    
-    new_entry.d_ino = beanfs_alloc_inode(&sb_info, &i_info_p, virtual_device);
-    update_superblock(&sb_info, &superblock, virtual_device);
-    
-    beanfs_add_entry(&new_entry, &sb_info, &r_inode_info_p, virtual_device);
-    //beanfs_add_entry(&new_entry, &sb_info, &r_inode_info_p, virtual_device);
-    update_superblock(&sb_info, &superblock, virtual_device);
-    
-    // --------------------------------------------------------------------
-    struct beanfs_dir_entry tmp_entry;
-    int find = 0;
-    find = beanfs_lookup("/fuck", &sb_info, &tmp_entry, virtual_device);
-    printf("found : %d ino %d \n", find, tmp_entry.d_ino);
-    
-    printf("root dir resutl %d\n", read_block(&root_dir, root_inode.i_addr.d_addr[0], sizeof(struct beanfs_dir), 1, virtual_device));
-    printf("rootdir len %d \n", root_dir.len);
-    for (int i = 0; i < root_dir.len; i++) {
-        printf("filename %s ino %d \n", root_dir.entrys[i].d_name, root_dir.entrys[i].d_ino);
-    }
+//    system("dd if=/dev/zero of=virtual_device bs=512 count=100");
+//        
+//    virtual_device = fopen("virtual_device", "wb+");
+//    init_beanfs(100, virtual_device);
+//    
+//    printf("superblock resutl %d\n", read_superblock(&superblock, virtual_device));
+//    printf("root inode result %d\n" ,read_block(&root_inode, superblock.s_first_inode_block, sizeof(struct beanfs_inode), 1, virtual_device));
+//    // ---------------------------------------------------
+//    struct beanfs_dir_entry new_entry = {UINT32_MAX, "fuck", '-'};
+//    struct beanfs_inode_info r_inode_info_p;
+//    struct beanfs_sb_info sb_info;
+//    struct beanfs_inode_info i_info_p;
+//    beanfs_transform2inode_info(&root_inode, &r_inode_info_p, 0);
+//    beanfs_transform2sb_info(&superblock, &sb_info, virtual_device);
+//    
+//    new_entry.d_ino = beanfs_alloc_inode(&sb_info, &i_info_p, virtual_device);
+//    update_superblock(&sb_info, &superblock, virtual_device);
+//    
+//    beanfs_add_entry(&new_entry, &sb_info, &r_inode_info_p, virtual_device);
+//    //beanfs_add_entry(&new_entry, &sb_info, &r_inode_info_p, virtual_device);
+//    update_superblock(&sb_info, &superblock, virtual_device);
+//    
+//    // --------------------------------------------------------------------
+//    struct beanfs_dir_entry tmp_entry;
+//    int find = 0;
+//    find = beanfs_lookup("/fuck", &sb_info, &tmp_entry, virtual_device);
+//    printf("found : %d ino %d \n", find, tmp_entry.d_ino);
+//    
+//    printf("root dir resutl %d\n", read_block(&root_dir, root_inode.i_addr.d_addr[0], sizeof(struct beanfs_dir), 1, virtual_device));
+//    printf("rootdir len %d \n", root_dir.len);
+//    for (int i = 0; i < root_dir.len; i++) {
+//        printf("filename %s ino %d \n", root_dir.entrys[i].d_name, root_dir.entrys[i].d_ino);
+//    }
     //fclose(virtual_device);
     // -------------------------------------------------------
     // -------------------------------------------------------
@@ -70,16 +67,19 @@ int main(void)
         if (!vfs_exist) {
             do {
                 choice = getchar();
+                terminater = getchar();
             } while (choice != '1' && choice != '2' && choice != '3');
             
             switch (choice) {
                 case '1':
                     printf("creating a filesystem \n");
-                    beanfs_mkfs(virtual_device);
+                    beanfs_mkfs(vfs_device);
+                    beanfs_shell(vfs_device);
                     //create_filesystem();
                     break;
                 case '2':
                     printf("accessing existed filesystem\n");
+                    beanfs_shell(vfs_device);
                     //access_exist_filesystem();
                     break;
                 case '3':
@@ -97,6 +97,8 @@ int main(void)
             switch (choice) {
                 case '1':
                     printf("createing a filesystem \n");
+                    beanfs_mkfs(vfs_device);
+                    beanfs_shell(vfs_device);
                     //create_filesystem();
                     break;
                 case '2':
