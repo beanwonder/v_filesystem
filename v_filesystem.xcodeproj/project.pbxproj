@@ -47,6 +47,7 @@
 		D79D866B1879B78400AFD401 /* balloc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = balloc.c; path = beanfs/balloc.c; sourceTree = "<group>"; };
 		D7A80D6D188661620050174D /* commands.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = commands.c; sourceTree = "<group>"; };
 		D7A80D6F188661780050174D /* commands.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = commands.h; sourceTree = "<group>"; };
+		D7A80D7018866F010050174D /* tmp.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = tmp.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -91,6 +92,7 @@
 				D7A80D6F188661780050174D /* commands.h */,
 				D7070649186C4F1B0046533A /* util.c */,
 				D7A80D6D188661620050174D /* commands.c */,
+				D7A80D7018866F010050174D /* tmp.c */,
 				D75DD61318503EBB00519EB3 /* v_filesystem.1 */,
 			);
 			path = v_filesystem;

@@ -158,7 +158,6 @@ int beanfs_lookup(char full_path[], struct beanfs_sb_info *sb_info_p, struct bea
             status = 1;
             break;
         }
-        
     } while (right_sep_pos != NULL);
     
     if (status == 1) {
@@ -166,6 +165,5 @@ int beanfs_lookup(char full_path[], struct beanfs_sb_info *sb_info_p, struct bea
     } else {
         memset(entry_p, 0, sizeof(struct beanfs_dir_entry));
     }
-    
     return status;
 }

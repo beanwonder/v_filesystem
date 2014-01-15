@@ -181,4 +181,7 @@ extern int beanfs_lookup(char full_path[], struct beanfs_sb_info *sb_info_p, str
 extern uint32_t beanfs_alloc_datablock(struct beanfs_sb_info *sb_info_p, FILE *v_device);
 extern int beanfs_add_entry(struct beanfs_dir_entry *new_entry, struct beanfs_sb_info *sb_info_p,
                             struct beanfs_inode_info *d_inode_info_p, FILE *v_device);
+
+int beanfs_fread(struct beanfs_sb_info *sb_info_p, struct beanfs_file *beanfs_file,
+                 char buffer[BLOCK_SIZE], uint32_t block_no, FILE *v_device);
 #endif

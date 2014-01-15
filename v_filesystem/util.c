@@ -80,9 +80,69 @@ static void parse_shell_input(char *input, char **command, int *argc, char *argv
     assert(*argc < 100);
 }
 
-static void beanfs_login(struct envrioment_variable * envvars, FILE *v_device)
+static void beanfs_login(struct beanfs_super_block *sbp, struct beanfs_sb_info *sb_info_p,
+                         struct envrioment_variable * envvars, FILE *v_device)
 {
+    char passwd_full_path[] = "/etc/passwd";
+    struct beanfs_dir_entry passwd_file_entry;
+    struct beanfs_file passwd_file;
+    struct beanfs_inode inode;
+    struct beanfs_inode_info inode_info;
+    int status = -1;
+    char buffer[BLOCK_SIZE] = {0};
+    char *search_end = NULL;
+    char *search_start = NULL;
+    char tmpbuffer[BLOCK_SIZE] = {0};
+
+    char user[20];
+    char uid[6];
+    char passwd[20];
     
+    // init superblock block into memory
+    read_superblock(sbp, v_device);
+    beanfs_transform2sb_info(sbp, sb_info_p, v_device);
+    
+    status = beanfs_lookup(passwd_full_path, sb_info_p, &passwd_file_entry, v_device);
+    if (status == 1) {
+        //file exists, get inode
+        beanfs_read_inode(sb_info_p, &inode, sb_info_p->s_first_inode_block + passwd_file_entry.d_ino, v_device);
+        beanfs_transform2inode_info(&inode, &inode_info, passwd_file_entry.d_ino);
+        passwd_file.cur_ptr = 0;
+        passwd_file.inode_info = inode_info;
+        if (passwd_file.inode_info.i_blocks > 0) {
+            // get file content
+            search_end = strpbrk(buffer, "\n");
+            if (search_end != NULL) {
+                
+                strncpy(tmpbuffer, buffer, search_end - buffer);
+                tmpbuffer[search_end - buffer] = ' ';
+                tmpbuffer[search_end - buffer] = '\0';
+                search_start = tmpbuffer;
+                
+                search_end = strpbrk(tmpbuffer, " ");
+                strncpy(user, search_start, search_end - search_start);
+                user[search_end - search_start] = '\0';
+                search_start = search_end + 1;
+                
+                search_end = strpbrk(search_start, " ");
+                strncpy(uid, search_start, search_end - search_start);
+                uid[search_end - search_start] = '\0';
+                search_start = search_end + 1;
+                
+                search_end = strpbrk(search_start, " ");
+                strncpy(passwd, search_start, search_end - search_start);
+                passwd[search_end - search_start] = '\0';
+            } else {
+                int flag = 1;
+                char input[100];
+                printf("please create a new ")
+                do {
+                    printf(" ")
+                    scanf(" %s ", input);
+                } while (flag);
+            }
+        }
+    }
 }
 
 void beanfs_shell(const char vfs_device[])
@@ -90,12 +150,15 @@ void beanfs_shell(const char vfs_device[])
     FILE *v_device = NULL;
     char *input = NULL;
     size_t len = 0;
-    struct envrioment_variable envvars = {"root", 0, 0, "/"};
+    struct envrioment_variable envvars;
+    struct beanfs_super_block super_block;
+    struct beanfs_sb_info sb_info;
+    
     // init enviroment
     v_device = fopen(vfs_device, "ab+");
     assert(vfs_device != NULL);
     system("clear");
-    beanfs_login(&envvars, v_device);
+    beanfs_login(&super_block, &sb_info, &envvars, v_device);
     
     while (1) {
         // first exetue is to get rid of the
