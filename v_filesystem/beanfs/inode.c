@@ -107,7 +107,8 @@ int beanfs_transform2inode_info(struct beanfs_inode *inode_p, struct beanfs_inod
     return status;
 }
 
-int update_inode(struct beanfs_sb_info *sb_info_p, struct beanfs_inode_info *inode_info_p, struct beanfs_inode *inode_p, FILE *v_device)
+int update_inode(struct beanfs_sb_info *sb_info_p, struct beanfs_inode_info *inode_info_p,
+                 struct beanfs_inode *inode_p, FILE *v_device)
 {
     int status = 0;
     // check pointer

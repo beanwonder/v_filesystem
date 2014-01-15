@@ -172,6 +172,8 @@ extern int read_block(void *buffer, long dst_block, size_t size , size_t count, 
 extern int read_data_block(struct beanfs_sb_info *sb_info_p, void *buffer, uint32_t block_addr, FILE *v_device);
 
 extern int beanfs_read_inode(struct beanfs_sb_info *sb_info_p, struct beanfs_inode *inode_p, uint32_t inode_addr, FILE *v_device);
+extern int update_inode(struct beanfs_sb_info *sb_info_p, struct beanfs_inode_info *inode_info_p,
+                        struct beanfs_inode *inode_p, FILE *v_device);
 
 extern int beanfs_transform2inode_info(struct beanfs_inode *inode_p, struct beanfs_inode_info *inode_info_p, uint32_t ino);
 extern uint32_t beanfs_alloc_inode(struct beanfs_sb_info *sb_info_p, struct beanfs_inode_info *ei ,FILE *v_device);
@@ -182,6 +184,7 @@ extern uint32_t beanfs_alloc_datablock(struct beanfs_sb_info *sb_info_p, FILE *v
 extern int beanfs_add_entry(struct beanfs_dir_entry *new_entry, struct beanfs_sb_info *sb_info_p,
                             struct beanfs_inode_info *d_inode_info_p, FILE *v_device);
 
-int beanfs_fread(struct beanfs_sb_info *sb_info_p, struct beanfs_file *beanfs_file,
+extern int beanfs_fread(struct beanfs_sb_info *sb_info_p, struct beanfs_file *beanfs_file,
                  char buffer[BLOCK_SIZE], uint32_t block_no, FILE *v_device);
+
 #endif

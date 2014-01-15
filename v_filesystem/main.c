@@ -19,7 +19,7 @@ int main(void)
     void show_main_menu();
     char choice = '\0';
     char terminater = '\0';
-
+    
     while (1) {
         vfs_exist = access(vfs_device, F_OK);
         show_main_menu(vfs_exist);
@@ -53,6 +53,7 @@ int main(void)
         } else {
             do {
                 choice = getchar();
+                terminater = getchar();
             } while (choice != '1' && choice != '2');
             
             switch (choice) {

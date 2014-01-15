@@ -94,7 +94,7 @@ static void write2vdevice(struct beanfs_super_block *sbp, int fbg_counts[],
 {
     // write boot
     char bootblock[BLOCK_SIZE] = {0};
-    write2block(bootblock, 0, sizeof(char), 1,vdevice);
+    write2block(bootblock, 0, sizeof(char), BLOCK_SIZE, vdevice);
     // write superblock
     write2block(sbp, BOOTBLOCKCOUNT, sizeof(struct beanfs_super_block), 1, vdevice);
 
@@ -192,7 +192,6 @@ int init_beanfs(uint32_t blocks, FILE *virtual_device)
     struct beanfs_dir root_dir;                                 // rootdir entry
     int free_blocks_groups_counts[2] = {0, 0};                  // counts groups respectively [0] for data_block and [1] for inode
     struct free_blocks_group free_blocks_group;
-    
     
     create_raw_sb(&sb, blocks);
     create_root_dir(&sb, &root_inode, &root_dir);
