@@ -24,7 +24,7 @@ struct envrioment_variable {
     char *argv[MAX_ARGC];
 };
 
-extern int beanfs_mkfs(const char vfs_device[]);
-extern void beanfs_shell(const char vfs_device[]);
+extern int beanfs_mkfs(FILE *v_device);
+extern void beanfs_shell(FILE *v_device);
 
 #endif

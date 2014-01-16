@@ -19,7 +19,11 @@ int main(void)
     void show_main_menu();
     char choice = '\0';
     char terminater = '\0';
+    FILE *virtual_device = NULL;
     
+    //system("dd if=/dev/zero of=virtual_device bs=512 count=300");
+    virtual_device = fopen("virtual_device", "wb+");
+    init_beanfs(100, virtual_device);
     while (1) {
         vfs_exist = access(vfs_device, F_OK);
         show_main_menu(vfs_exist);
@@ -34,13 +38,13 @@ int main(void)
             switch (choice) {
                 case '1':
                     printf("creating a filesystem \n");
-                    beanfs_mkfs(vfs_device);
-                    beanfs_shell(vfs_device);
+                    //beanfs_mkfs(vfs_device);
+                    beanfs_shell(virtual_device);
                     //create_filesystem();
                     break;
                 case '2':
                     printf("accessing existed filesystem\n");
-                    beanfs_shell(vfs_device);
+                    beanfs_shell(virtual_device);
                     //access_exist_filesystem();
                     break;
                 case '3':
@@ -59,8 +63,8 @@ int main(void)
             switch (choice) {
                 case '1':
                     printf("createing a filesystem \n");
-                    beanfs_mkfs(vfs_device);
-                    beanfs_shell(vfs_device);
+                    //beanfs_mkfs(vfs_device);
+                    beanfs_shell(virtual_device);
                     //create_filesystem();
                     break;
                 case '2':

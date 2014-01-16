@@ -102,82 +102,101 @@ static void write2vdevice(struct beanfs_super_block *sbp, int fbg_counts[],
     //struct free_blocks_group tmpblocksgroup;
     struct free_datablocks_group tmp_datablocks_group;
     struct free_inodes_group tmp_inodes_group;
-    int first_block = -1;
-    int data_group_count = fbg_counts[0];
-    int inode_group_count = fbg_counts[1];
-    int block_top = -1;
-
-    if (data_group_count > 0) {
-        first_block = sbp->s_first_data_block + 1;                             // first block is reserved for rootdir
-        if (data_group_count == 1) {
-            block_top = fbg_p->data_group.top;
-        } else {
-            block_top = FREE_DATABLOCKS_LIST_SIZE - 1;
-        }
-        tmp_datablocks_group.top = block_top;
-        for (int i = 0; i < tmp_datablocks_group.top + 1; i++) {
-            tmp_datablocks_group.list[tmp_datablocks_group.top - i] = first_block + i;
-        }
-    } else {
-        tmp_datablocks_group.top = -1;
+//    int first_block = -1;
+//    int data_group_count = fbg_counts[0];
+//    int inode_group_count = fbg_counts[1];
+//    int block_top = -1;
+//
+//    if (data_group_count > 0) {
+//        first_block = sbp->s_first_data_block + 1;                             // first block is reserved for rootdir
+//        if (data_group_count == 1) {
+//            block_top = fbg_p->data_group.top;
+//        } else {
+//            block_top = FREE_DATABLOCKS_LIST_SIZE - 1;
+//        }
+//        tmp_datablocks_group.top = block_top;
+//        for (int i = 0; i < tmp_datablocks_group.top + 1; i++) {
+//            tmp_datablocks_group.list[tmp_datablocks_group.top - i] = first_block + i;
+//        }
+//    } else {
+//        tmp_datablocks_group.top = -1;
+//    }
+//    data_group_count--;
+//    
+//    first_block = -1;
+//    block_top = -1;
+//    if (inode_group_count > 0) {
+//        first_block = sbp->s_first_inode_block + 1;                             // first inode is reserved for rootdir
+//        if (inode_group_count == 1) {
+//            block_top = fbg_p->inode_group.top;
+//        } else {
+//            block_top = FREE_INODES_LIST_SIZE - 1;
+//        }
+//        tmp_inodes_group.top = block_top;
+//        for (int i = 0; i < tmp_inodes_group.top + 1; i++) {
+//            tmp_inodes_group.list[tmp_inodes_group.top - i] = first_block + i;
+//        }
+//    } else {
+//        tmp_inodes_group.top = -1;
+//    }
+//    inode_group_count--;
+//    
+//    // write to vdevice
+//    write2block(&tmp_datablocks_group, sbp->s_free_datablocksmg_block, sizeof(struct free_datablocks_group), 1, vdevice);
+//    write2block(&tmp_inodes_group, sbp->s_free_inodesmg_block, sizeof(struct free_inodes_group), 1, vdevice);
+//
+//    //write2block(&tmpblocksgroup, BOOTBLOCKCOUNT+SUPERBLOCKCOUNT, sizeof(struct free_blocks_group), 1, vdevice);
+//    
+//    // link free datablock groups
+//    //struct free_datablocks_group tmp_datablocks_group = tmpblocksgroup.data_group;
+//    //struct free_inodes_group tmp_inodes_group = tmpblocksgroup.inode_group;
+//    uint32_t block_dst = 0;
+//    while (data_group_count >= 0) {
+//        block_dst = tmp_datablocks_group.list[0];
+//        for (int i = 0; i < tmp_datablocks_group.top + 1; i++) {
+//            tmp_datablocks_group.list[i] += FREE_DATABLOCKS_LIST_SIZE;
+//        }
+//        write2block(&tmp_datablocks_group, block_dst, sizeof(struct free_datablocks_group), 1, vdevice);
+//        data_group_count--;
+//        if (data_group_count == 1) {
+//            tmp_datablocks_group.top = fbg_p->data_group.top;             // last group elements count
+//        } else if (data_group_count == 0) {
+//            tmp_datablocks_group.top = -1;
+//        }
+//    }
+//    block_dst = 0;
+//    while (inode_group_count >= 0) {
+//        block_dst = tmp_inodes_group.list[0];
+//        for (int i = 0; i < tmp_inodes_group.top + 1; i++) {
+//            tmp_inodes_group.list[i] += FREE_INODES_LIST_SIZE;
+//        }
+//        write2block(&tmp_inodes_group, block_dst, sizeof(struct free_inodes_group), 1, vdevice);
+//        inode_group_count--;
+//        if (inode_group_count == 1) {
+//            tmp_inodes_group.top = fbg_p->data_group.top;
+//        } else if (inode_group_count == 0) {
+//            tmp_inodes_group.top = -1;
+//        }
+//    }
+    // 9 free_inode
+    uint32_t block_addr = UINT32_MAX;
+    tmp_inodes_group.top = sbp->s_free_inodes_count - 1;
+    for (int8_t i = 0; i <= tmp_inodes_group.top; i++) {
+        tmp_inodes_group.list[i] = sbp->s_first_inode_block + 1 + i;
     }
-    data_group_count--;
-    
-    first_block = -1;
-    block_top = -1;
-    if (inode_group_count > 0) {
-        first_block = sbp->s_first_inode_block + 1;                             // first inode is reserved for rootdir
-        if (inode_group_count == 1) {
-            block_top = fbg_p->inode_group.top;
-        } else {
-            block_top = FREE_INODES_LIST_SIZE - 1;
-        }
-        tmp_inodes_group.top = block_top;
-        for (int i = 0; i < tmp_inodes_group.top + 1; i++) {
-            tmp_inodes_group.list[tmp_inodes_group.top - i] = first_block + i;
-        }
-    } else {
-        tmp_inodes_group.top = -1;
-    }
-    inode_group_count--;
-    
-    // write to vdevice
-    write2block(&tmp_datablocks_group, sbp->s_free_datablocksmg_block, sizeof(struct free_datablocks_group), 1, vdevice);
     write2block(&tmp_inodes_group, sbp->s_free_inodesmg_block, sizeof(struct free_inodes_group), 1, vdevice);
-
-    //write2block(&tmpblocksgroup, BOOTBLOCKCOUNT+SUPERBLOCKCOUNT, sizeof(struct free_blocks_group), 1, vdevice);
+    block_addr = tmp_inodes_group.list[0];
+    tmp_inodes_group.top = -1;
+    write2block(&tmp_datablocks_group, block_addr, sizeof(struct free_inodes_group), 1, vdevice);
     
-    // link free datablock groups
-    //struct free_datablocks_group tmp_datablocks_group = tmpblocksgroup.data_group;
-    //struct free_inodes_group tmp_inodes_group = tmpblocksgroup.inode_group;
-    uint32_t block_dst = 0;
-    while (data_group_count >= 0) {
-        block_dst = tmp_datablocks_group.list[0];
-        for (int i = 0; i < tmp_datablocks_group.top + 1; i++) {
-            tmp_datablocks_group.list[i] += FREE_DATABLOCKS_LIST_SIZE;
-        }
-        write2block(&tmp_datablocks_group, block_dst, sizeof(struct free_datablocks_group), 1, vdevice);
-        data_group_count--;
-        if (data_group_count == 1) {
-            tmp_datablocks_group.top = fbg_p->data_group.top;             // last group elements count
-        } else if (data_group_count == 0) {
-            tmp_datablocks_group.top = -1;
-        }
+    tmp_datablocks_group.top = sbp->s_free_datablocks_count - 1;
+    for (int8_t i = 0; i <= tmp_datablocks_group.top; i++) {
+        tmp_datablocks_group.list[i] = sbp->s_first_data_block + 1 + i;
     }
-    block_dst = 0;
-    while (inode_group_count >= 0) {
-        block_dst = tmp_inodes_group.list[0];
-        for (int i = 0; i < tmp_inodes_group.top + 1; i++) {
-            tmp_inodes_group.list[i] += FREE_INODES_LIST_SIZE;
-        }
-        write2block(&tmp_inodes_group, block_dst, sizeof(struct free_inodes_group), 1, vdevice);
-        inode_group_count--;
-        if (inode_group_count == 1) {
-            tmp_inodes_group.top = fbg_p->data_group.top;
-        } else if (inode_group_count == 0) {
-            tmp_inodes_group.top = -1;
-        }
-    }
+    write2block(&tmp_datablocks_group, sbp->s_free_datablocksmg_block, sizeof(struct free_datablocks_group), 1, vdevice);
+    block_addr = tmp_datablocks_group.list[0];
+    tmp_datablocks_group.top = -1;
+    write2block(&tmp_datablocks_group, block_addr, sizeof(struct free_datablocks_group), 1, vdevice);
     
     // write root dir
     write2block(rip, sbp->s_first_inode_block, sizeof(struct beanfs_super_block), 1, vdevice);
@@ -195,8 +214,7 @@ int init_beanfs(uint32_t blocks, FILE *virtual_device)
     
     create_raw_sb(&sb, blocks);
     create_root_dir(&sb, &root_inode, &root_dir);
-    create_free_blocks_group(&sb, &free_blocks_group, free_blocks_groups_counts);
-    
+    //create_free_blocks_group(&sb, &free_blocks_group, free_blocks_groups_counts);
     assert(sizeof(struct beanfs_super_block) <= BLOCK_SIZE);
     assert(sizeof(struct beanfs_inode) <= BLOCK_SIZE);
     assert(sizeof(struct beanfs_dir) <= BLOCK_SIZE);
@@ -226,7 +244,8 @@ int read_data_block(struct beanfs_sb_info *sb_info_p, void *buffer, uint32_t blo
 {
     int status = 0;
     // check wheather block addr out of data block index
-    if (block_addr >= sb_info_p->s_first_data_block && block_addr <= sb_info_p->s_first_data_block + sb_info_p->s_datablocks_count - 1) {
+    if (block_addr >= sb_info_p->s_first_data_block &&
+        block_addr <= sb_info_p->s_first_data_block + sb_info_p->s_datablocks_count - 1) {
         // read data block
         status = read_block(buffer, block_addr, sizeof(char), BLOCK_SIZE, v_device);
     } else {

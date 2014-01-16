@@ -16,14 +16,14 @@
 #include "commands.h"
 
 
-int beanfs_mkfs(const char vfs_device[])
+int beanfs_mkfs(FILE *v_device)
 {
-    FILE *v_device = NULL;
     int blocks = 0;
     const char command[] = "dd if=/dev/zero of=virtual_device bs=512 count=";
     char blocks_str[10];
     char full_command[100];
     int status = 0;
+    //FILE *v_device = NULL;
     
     do {
         printf("please enter block number: (>= 10 block)  to initialize this system \n");
@@ -35,7 +35,7 @@ int beanfs_mkfs(const char vfs_device[])
     strcat(full_command, blocks_str);
     system(full_command);
     
-    v_device = fopen(vfs_device, "wb+");
+    v_device = fopen("virtual_device", "ab+");
     if (v_device != NULL) {
         status = init_beanfs(blocks, v_device);
             // create /passwd file
@@ -90,7 +90,7 @@ static void beanfs_login(struct envrioment_variable *envvars_p)
             printf("username: ");
             scanf("%s", input_username);
             printf("password: ");
-            scanf(" %s ", input_passwd);
+            scanf(" %s", input_passwd);
             if (strcmp(input_username, username) == 0 && strcmp(input_passwd, passwd) == 0) {
                 flag = 0;
             } else {
@@ -109,9 +109,8 @@ static void beanfs_login(struct envrioment_variable *envvars_p)
     fclose(account_file);
 }
 
-void beanfs_shell(const char vfs_device[])
+void beanfs_shell(FILE *v_device)
 {
-    FILE *v_device = NULL;
     char *input = NULL;
     size_t len = 0;
     struct beanfs_super_block super_block;
@@ -121,8 +120,6 @@ void beanfs_shell(const char vfs_device[])
     envvars.curdir = curdir_buffer;
     
     // init enviroment
-    v_device = fopen(vfs_device, "ab+");
-    assert(vfs_device != NULL);
     system("clear");
     beanfs_login(&envvars);
     read_superblock(&super_block, v_device);
@@ -154,7 +151,7 @@ void beanfs_shell(const char vfs_device[])
             } else if (strcmp(envvars.command, "cat") == 0) {
             
             } else if (strcmp(envvars.command, "mkdir") == 0) {
-
+                beanfs_mkdir(&envvars, &sb_info, v_device);
             } else if (strcmp(envvars.command, "rmdir") == 0) {
                 
             } else if (strcmp(envvars.command, "passwd") == 0) {

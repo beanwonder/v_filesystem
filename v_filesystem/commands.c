@@ -93,3 +93,35 @@ int beanfs_ls(struct envrioment_variable *envvars_p, struct beanfs_sb_info *sb_i
     }
     return status;
 }
+
+int beanfs_mkdir(struct envrioment_variable *envvars_p, struct beanfs_sb_info *sb_info_p, FILE *v_device)
+{
+    int status = 0;
+    uint32_t ino = UINT32_MAX;
+    struct beanfs_inode_info dir_inode_info;
+    struct beanfs_inode dir_inode;
+    struct beanfs_dir_entry new_entry;
+    struct beanfs_dir new_dir;
+    new_dir.len = 2;
+    
+    struct beanfs_inode r_inode;
+    struct beanfs_inode_info r_inode_info;
+    beanfs_read_inode(sb_info_p, &r_inode, sb_info_p->s_first_inode_block, v_device);
+    beanfs_transform2inode_info(&r_inode, &r_inode_info, 0);
+    
+    ino = beanfs_alloc_inode(sb_info_p, &dir_inode_info, v_device);
+    new_entry.d_file_type = 'd';
+    new_entry.d_ino = ino;
+    strcpy(new_entry.d_name, "etc");
+    beanfs_add_entry(&new_entry, sb_info_p, &r_inode_info, v_device);
+    dir_inode_info.i_addr.d_addr[0] = beanfs_alloc_datablock(sb_info_p, v_device);
+    new_dir.entrys[0].d_file_type = 'd';
+    new_dir.entrys[0].d_ino = ino;
+    strcpy(new_dir.entrys[0].d_name, ".");
+    new_dir.entrys[1].d_file_type = 'd';
+    new_dir.entrys[1].d_ino = 0;
+    strcpy(new_dir.entrys[1].d_name, "..");
+    write2block(&new_dir, dir_inode_info.i_addr.d_addr[0], sizeof(struct beanfs_dir), 1, v_device);
+    update_inode(sb_info_p, &dir_inode_info, &dir_inode, v_device);
+    return status;
+}
