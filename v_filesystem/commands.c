@@ -25,32 +25,30 @@ int beanfs_cd(struct envrioment_variable *envvars_p, struct beanfs_sb_info *sb_i
 {
     int status = 0;
     struct beanfs_dir_entry tmp_entry;
-    char *last_slash = NULL;
     //char tmp_argv[100];
+    char full_path_tmp[BLOCK_SIZE] = {0};
     
-    if (strcmp(envvars_p->command, "cd") == 0) {
-        if (envvars_p->argc == 2) {
-            if (envvars_p->argv[1][0] != '/') {
-                printf(" invalid path \n");
-                return status;
+    if (envvars_p->argc > 1) {
+        if (envvars_p->argv[1][0] != '/') {
+            //
+            if (strcmp(envvars_p->curdir, "/") != 0) {
+                strcat(full_path_tmp, envvars_p->curdir);
             }
-            if (beanfs_lookup(envvars_p->argv[1], sb_info_p, &tmp_entry, v_device) && tmp_entry.d_file_type == 'd') {
-                if (strcmp(tmp_entry.d_name, ".") != 0 && strcmp(tmp_entry.d_name, "..") != 0) {
-                    strcpy(envvars_p->curdir, envvars_p->argv[1]);
-                } else if (strcmp(tmp_entry.d_name, "..") == 0){
-                    if (strcmp(envvars_p->curdir, "/") != 1) {
-                        last_slash = strrchr(envvars_p->curdir, '/');
-                        if (last_slash != envvars_p->curdir) {
-                            last_slash[1] = '\0';
-                        } else {
-                            (envvars_p->curdir)[1] = '\0';
-                        }
-                    }
-                }
-            } else {
-                fprintf(stderr, " %s : doesn't exist \n", envvars_p->argv[1]);
-            }
+            strcat(full_path_tmp, "/");
+            strcat(full_path_tmp, envvars_p->argv[1]);
+        } else {
+            // absolute path
+            strcpy(full_path_tmp, envvars_p->argv[1]);
         }
+        if (beanfs_lookup(full_path_tmp, sb_info_p, &tmp_entry, v_device) == 1 && tmp_entry.d_file_type == 'd') {
+            strcpy(envvars_p->curdir, full_path_tmp);
+            status = 1;
+        } else {
+            fprintf(stderr, "cd: %s is not a directory \n", envvars_p->argv[1]);
+        }
+    } else {
+        // keep keep currentdir
+        status = 1;
     }
     return status;
 }
@@ -58,38 +56,41 @@ int beanfs_cd(struct envrioment_variable *envvars_p, struct beanfs_sb_info *sb_i
 int beanfs_ls(struct envrioment_variable *envvars_p, struct beanfs_sb_info *sb_info_p, FILE *v_device)
 {
     int status = 0;
-    struct beanfs_dir dir;
-    struct beanfs_dir_entry entry;
+    struct beanfs_dir tmp_dir;
+    struct beanfs_dir_entry tmp_entry;
     struct beanfs_inode tmp_inode;
-    if (envvars_p->argc > 1) {
-        if (beanfs_lookup(envvars_p->argv[0], sb_info_p, &entry, v_device) == 1) {
-            if (entry.d_file_type == 'd') {
-                // get dir info
-                beanfs_read_inode(sb_info_p, &tmp_inode, sb_info_p->s_first_inode_block + entry.d_ino, v_device);
-                read_block(&dir, tmp_inode.i_addr.d_addr[0], sizeof(struct beanfs_dir), 1, v_device);
-                for (uint8_t i = 8; i < dir.len; i++) {
-                    printf("%s  ", dir.entrys[i].d_name);
-                }
-                printf("\n");
-            } else {
-                printf("%s  \n", entry.d_name);
+    char abs_path[BLOCK_SIZE] = {0};
+    
+    if (envvars_p->argc == 2) {
+        if (envvars_p->argv[1][0] != '/') {
+            if (strcmp(envvars_p->curdir, "/") != 0) {
+                strcpy(abs_path, envvars_p->argv[1]);
             }
+            strcat(abs_path, "/");
+            strcat(abs_path, envvars_p->argv[1]);
+        } else {
+            strcpy(abs_path, envvars_p->argv[1]);
         }
     } else {
-        if (strcmp(envvars_p->curdir, "/")) {
-            read_block(&dir, sb_info_p->s_first_data_block, sizeof(struct beanfs_dir), 1, v_device);
-            for (uint8_t i = 0; i < dir.len; i++) {
-                printf("%s  ", dir.entrys[i].d_name);
+        strcpy(abs_path, envvars_p->curdir);
+    }
+    
+    if (beanfs_lookup(abs_path, sb_info_p, &tmp_entry, v_device) == 1) {
+        if (tmp_entry.d_file_type == 'd') {
+            // get dir information
+            beanfs_read_inode(sb_info_p, &tmp_inode, sb_info_p->s_first_inode_block + tmp_entry.d_ino, v_device);
+            read_block(&tmp_dir, tmp_inode.i_addr.d_addr[0], sizeof(struct beanfs_dir), 1, v_device);
+            for (int8_t i = 0; i < tmp_dir.len; i++) {
+                printf("%s ", tmp_dir.entrys[i].d_name);
             }
+            printf("\n");
+            status = 1;
         } else {
-            beanfs_lookup(envvars_p->curdir, sb_info_p, &entry, v_device);
-            beanfs_read_inode(sb_info_p, &tmp_inode, sb_info_p->s_first_inode_block + entry.d_ino, v_device);
-            read_block(&dir, tmp_inode.i_addr.d_addr[0], sizeof(struct beanfs_dir), 1, v_device);
-            for (uint8_t i = 0; i < dir.len; i++) {
-                printf("%s  ", dir.entrys[i].d_name);
-            }
+            printf("type: %c  %s \n", tmp_entry.d_file_type, tmp_entry.d_name);
+            status = 1;
         }
-        printf("\n");
+    } else {
+        fprintf(stderr, " %s doesn't exits \n", envvars_p->argv[1]);
     }
     return status;
 }
@@ -124,4 +125,10 @@ int beanfs_mkdir(struct envrioment_variable *envvars_p, struct beanfs_sb_info *s
     write2block(&new_dir, dir_inode_info.i_addr.d_addr[0], sizeof(struct beanfs_dir), 1, v_device);
     update_inode(sb_info_p, &dir_inode_info, &dir_inode, v_device);
     return status;
+}
+
+int beanfs_clear()
+{
+    system("clear");
+    return 0;
 }

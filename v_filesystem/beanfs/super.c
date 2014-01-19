@@ -38,7 +38,7 @@ int beanfs_transform2sb_info(struct beanfs_super_block *sbp, struct beanfs_sb_in
     return status;
 }
 
-void create_raw_sb(struct beanfs_super_block *sbp, uint32_t blocks)
+void create_raw_sb(struct beanfs_super_block *sbp, uint32_t blocks, FILE *v_device)
 {
     sbp->s_blocks_count = blocks;                                   // total disk blocks
     sbp->s_inodes_count = blocks / 10;                              // block number >= 10

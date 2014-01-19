@@ -163,7 +163,7 @@ struct beanfs_file {
 extern int beanfs_transform2sb_info(struct beanfs_super_block *sbp, struct beanfs_sb_info *sb_info_p, FILE *v_device);
 extern int update_superblock(struct beanfs_sb_info *sb_info_p, struct beanfs_super_block *sbp, FILE *v_device);
 
-extern void create_raw_sb(struct beanfs_super_block *sbp, uint32_t blocks);
+extern void create_raw_sb(struct beanfs_super_block *sbp, uint32_t blocks, FILE *v_device);
 extern int read_superblock(struct beanfs_super_block *sbp, FILE *v_device);
 extern int write2block(const void *buffer, long dst_block, size_t size, size_t count, FILE *vdevice);
 extern int init_beanfs(uint32_t blocks, FILE *virtual_device);

@@ -16,14 +16,14 @@
 #include "commands.h"
 
 
-int beanfs_mkfs(FILE *v_device)
+int beanfs_mkfs(const char vfs_device[])
 {
     int blocks = 0;
     const char command[] = "dd if=/dev/zero of=virtual_device bs=512 count=";
     char blocks_str[10];
     char full_command[100];
     int status = 0;
-    //FILE *v_device = NULL;
+    FILE *v_device = NULL;
     
     do {
         printf("please enter block number: (>= 10 block)  to initialize this system \n");
@@ -31,16 +31,19 @@ int beanfs_mkfs(FILE *v_device)
         blocks = atoi(blocks_str);
     } while (blocks < 10);
     
+    printf(" creating %d blocks virtual_filesystem \n", blocks);
+    
+    
     strcpy(full_command, command);
     strcat(full_command, blocks_str);
     system(full_command);
     
-    v_device = fopen("virtual_device", "ab+");
+    v_device = fopen("virtual_device", "rb+");
     if (v_device != NULL) {
         status = init_beanfs(blocks, v_device);
+        fclose(v_device);
             // create /passwd file
     }
-
     return blocks;
 }
 
@@ -109,60 +112,69 @@ static void beanfs_login(struct envrioment_variable *envvars_p)
     fclose(account_file);
 }
 
-void beanfs_shell(FILE *v_device)
+void beanfs_shell(const char vfs_device[])
 {
     char *input = NULL;
     size_t len = 0;
     struct beanfs_super_block super_block;
     struct beanfs_sb_info sb_info;
+    FILE *v_device = NULL;
     char curdir_buffer[BLOCK_SIZE] = {0};
     struct envrioment_variable envvars;
     envvars.curdir = curdir_buffer;
     
+    v_device = fopen(vfs_device, "rb+");
+    assert(v_device);
     // init enviroment
-    system("clear");
-    beanfs_login(&envvars);
-    read_superblock(&super_block, v_device);
-    beanfs_transform2sb_info(&super_block, &sb_info, v_device);
-    
-    while (1) {
-        // first exetue is to get rid of the
-        printf("%s @ virtual_filesystem:%s \n", envvars.user, envvars.curdir);
-        len = getline(&input, &len, stdin);
-        input[len - 1] = '\0';
-        parse_shell_input(input, &envvars.command, &envvars.argc, envvars.argv);
-        if (envvars.argc > 0) {
-            if (strcmp(envvars.command, "exit") == 0) {
-                break;
-            } else if (strcmp(envvars.command, "ls") == 0) {
-                beanfs_ls(&envvars, &sb_info, v_device);
-            } else if (strcmp(envvars.command, "cd") == 0) {
-                beanfs_cd(&envvars, &sb_info, v_device);
-            } else if (strcmp(envvars.command, "mv") == 0) {
+    if (v_device != NULL) {
+        system("clear");
+        beanfs_login(&envvars);
+        read_superblock(&super_block, v_device);
+        beanfs_transform2sb_info(&super_block, &sb_info, v_device);
+        while (1) {
+            // first exetue is to get rid of the
+            printf("%s @ virtual_filesystem:%s \n", envvars.user, envvars.curdir);
+            len = getline(&input, &len, stdin);
+            input[len - 1] = '\0';
+            parse_shell_input(input, &envvars.command, &envvars.argc, envvars.argv);
+            if (envvars.argc > 0) {
+                if (strcmp(envvars.command, "exit") == 0) {
+                    break;
+                } else if (strcmp(envvars.command, "ls") == 0) {
+                    beanfs_ls(&envvars, &sb_info, v_device);
+                } else if (strcmp(envvars.command, "cd") == 0) {
+                    beanfs_cd(&envvars, &sb_info, v_device);
+                } else if (strcmp(envvars.command, "mv") == 0) {
+                    
+                } else if (strcmp(envvars.command, "cp") == 0) {
                 
-            } else if (strcmp(envvars.command, "cp") == 0) {
-            
-            } else if (strcmp(envvars.command, "ln") == 0) {
+                } else if (strcmp(envvars.command, "ln") == 0) {
+                    
+                } else if (strcmp(envvars.command, "rm") == 0) {
                 
-            } else if (strcmp(envvars.command, "rm") == 0) {
-            
-            } else if (strcmp(envvars.command, "pwd") == 0) {
-                beanfs_pwd(&envvars);
-            } else if (strcmp(envvars.command, "cat") == 0) {
-            
-            } else if (strcmp(envvars.command, "mkdir") == 0) {
-                beanfs_mkdir(&envvars, &sb_info, v_device);
-            } else if (strcmp(envvars.command, "rmdir") == 0) {
+                } else if (strcmp(envvars.command, "pwd") == 0) {
+                    beanfs_pwd(&envvars);
+                } else if (strcmp(envvars.command, "cat") == 0) {
                 
-            } else if (strcmp(envvars.command, "passwd") == 0) {
-            
-            } else {
-                fprintf(stderr, "%s: no such command \n", envvars.command);
+                } else if (strcmp(envvars.command, "mkdir") == 0) {
+                    beanfs_mkdir(&envvars, &sb_info, v_device);
+                } else if (strcmp(envvars.command, "clear") == 0) {
+                    beanfs_clear();
+                } else if (strcmp(envvars.command, "rmdir") == 0) {
+                    
+                } else if (strcmp(envvars.command, "passwd") == 0) {
+                
+                } else {
+                    fprintf(stderr, "%s: no such command \n", envvars.command);
+                }
             }
         }
+        if (input) {
+            free(input);
+        }
+        fclose(v_device);
+    } else {
+        fprintf(stderr, "an error occured, file: %s doesn't exists \n", vfs_device);
+        exit(1);
     }
-    if (input) {
-        free(input);
-    }
-    fclose(v_device);
 }

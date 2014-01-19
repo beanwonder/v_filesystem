@@ -19,15 +19,14 @@ int main(void)
     void show_main_menu();
     char choice = '\0';
     char terminater = '\0';
-    FILE *virtual_device = NULL;
     
-    //system("dd if=/dev/zero of=virtual_device bs=512 count=300");
-    virtual_device = fopen("virtual_device", "wb+");
-    init_beanfs(100, virtual_device);
+//    system("dd if=/dev/zero of=virtual_device bs=512 count=300");
+//    virtual_device = fopen("virtual_device", "wb+");
+//    init_beanfs(100, virtual_device);
     while (1) {
         vfs_exist = access(vfs_device, F_OK);
         show_main_menu(vfs_exist);
-        printf("    please choose a number \n");
+        printf("  please choose a number \n");
         
         if (!vfs_exist) {
             do {
@@ -38,14 +37,15 @@ int main(void)
             switch (choice) {
                 case '1':
                     printf("creating a filesystem \n");
-                    //beanfs_mkfs(vfs_device);
-                    beanfs_shell(virtual_device);
-                    //create_filesystem();
+                    sleep(1);
+                    beanfs_mkfs(vfs_device);
+                    beanfs_shell(vfs_device);
                     break;
                 case '2':
                     printf("accessing existed filesystem\n");
-                    beanfs_shell(virtual_device);
-                    //access_exist_filesystem();
+                    sleep(1);
+                    // direct accessing
+                    beanfs_shell(vfs_device);
                     break;
                 case '3':
                     printf("leaving, bye! \n");
@@ -63,8 +63,9 @@ int main(void)
             switch (choice) {
                 case '1':
                     printf("createing a filesystem \n");
-                    //beanfs_mkfs(vfs_device);
-                    beanfs_shell(virtual_device);
+                    sleep(1);
+                    beanfs_mkfs(vfs_device);
+                    beanfs_shell(vfs_device);
                     //create_filesystem();
                     break;
                 case '2':
