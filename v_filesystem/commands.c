@@ -98,32 +98,112 @@ int beanfs_ls(struct envrioment_variable *envvars_p, struct beanfs_sb_info *sb_i
 int beanfs_mkdir(struct envrioment_variable *envvars_p, struct beanfs_sb_info *sb_info_p, FILE *v_device)
 {
     int status = 0;
-    uint32_t ino = UINT32_MAX;
+    //uint32_t ino = UINT32_MAX;
     struct beanfs_inode_info dir_inode_info;
     struct beanfs_inode dir_inode;
     struct beanfs_dir_entry new_entry;
-    struct beanfs_dir new_dir;
-    new_dir.len = 2;
+    struct beanfs_dir_entry par_entry;
+    //struct beanfs_dir_entry tmp_entry;
+    struct beanfs_dir new_dir = {.len = 2};
+    char full_path[BLOCK_SIZE] = {0};
+    char dname[BLOCK_SIZE] = {0};
     
-    struct beanfs_inode r_inode;
-    struct beanfs_inode_info r_inode_info;
-    beanfs_read_inode(sb_info_p, &r_inode, sb_info_p->s_first_inode_block, v_device);
-    beanfs_transform2inode_info(&r_inode, &r_inode_info, 0);
-    
-    ino = beanfs_alloc_inode(sb_info_p, &dir_inode_info, v_device);
-    new_entry.d_file_type = 'd';
-    new_entry.d_ino = ino;
-    strcpy(new_entry.d_name, "etc");
-    beanfs_add_entry(&new_entry, sb_info_p, &r_inode_info, v_device);
-    dir_inode_info.i_addr.d_addr[0] = beanfs_alloc_datablock(sb_info_p, v_device);
     new_dir.entrys[0].d_file_type = 'd';
-    new_dir.entrys[0].d_ino = ino;
     strcpy(new_dir.entrys[0].d_name, ".");
     new_dir.entrys[1].d_file_type = 'd';
-    new_dir.entrys[1].d_ino = 0;
     strcpy(new_dir.entrys[1].d_name, "..");
-    write2block(&new_dir, dir_inode_info.i_addr.d_addr[0], sizeof(struct beanfs_dir), 1, v_device);
-    update_inode(sb_info_p, &dir_inode_info, &dir_inode, v_device);
+    
+    if (envvars_p->argc == 2) {
+        strcpy(full_path, envvars_p->curdir);
+        strcpy(dname, envvars_p->argv[1]);
+    } else if (envvars_p->argc == 3) {
+        strcpy(full_path, envvars_p->argv[1]);
+        strcpy(dname, envvars_p->argv[2]);
+    } else {
+        fprintf(stderr, "wrong directory \n");
+        return status;
+    }
+    
+    if (beanfs_lookup(full_path, sb_info_p, &par_entry, v_device) == 1 && par_entry.d_file_type == 'd') {
+        //strcat(full_path, "/");
+        strcat(full_path, dname);
+        //printf("%s \n", full_path);
+        if (beanfs_lookup(full_path, sb_info_p, &new_entry, v_device) == -1) {
+            struct beanfs_inode par_inode;
+            struct beanfs_inode_info par_inode_info;
+            beanfs_read_inode(sb_info_p, &par_inode, sb_info_p->s_first_inode_block + par_entry.d_ino, v_device);
+            beanfs_transform2inode_info(&par_inode, &par_inode_info, par_entry.d_ino);
+            new_entry.d_file_type = 'd';
+            strcpy(new_entry.d_name, dname);
+            new_entry.d_ino = beanfs_alloc_inode(sb_info_p, &dir_inode_info, v_device);
+            beanfs_add_entry(&new_entry, sb_info_p, &par_inode_info, v_device);
+            new_dir.entrys[0].d_ino = new_entry.d_ino;
+            new_dir.entrys[1].d_ino = par_entry.d_ino;
+            dir_inode_info.i_blocks = 1;
+            dir_inode_info.i_addr.d_addr[0] = beanfs_alloc_datablock(sb_info_p, v_device);
+            update_inode(sb_info_p, &dir_inode_info, &dir_inode, v_device);
+            write2block(&new_dir, dir_inode_info.i_addr.d_addr[0], sizeof(struct beanfs_dir), 1, v_device);
+            status = 1;
+        } else {
+            fprintf(stderr, " %s has exists \n", dname);
+        }
+    } else {
+        fprintf(stderr, " %s is not a directory \n", full_path);
+    }
+    
+    return status;
+}
+
+int beanfs_rmdir(struct envrioment_variable *envvars_p, struct beanfs_sb_info *sb_info_p, FILE *v_device)
+{
+    int status = 0;
+    char dname[BLOCK_SIZE] = {0};
+    char full_path[BLOCK_SIZE] = {0};
+    struct beanfs_dir_entry dir_entry;
+    struct beanfs_inode dir_inode;
+    struct beanfs_inode_info dir_inode_info;
+    
+    if (envvars_p->argc == 2) {
+        if (envvars_p->argv[1][0] != '/') {
+            strcpy(dname, envvars_p->argv[1]);
+            strcpy(full_path, envvars_p->curdir);
+            if (strcmp(envvars_p->curdir, "/") != 0) {
+                strcpy(full_path, "/");
+            }
+            strcpy(full_path, dname);
+            // begin remove
+            if (beanfs_lookup(full_path, sb_info_p, &dir_entry, v_device) == 1 && dir_entry.d_file_type == 'd') {
+                beanfs_read_inode(sb_info_p, &dir_inode, sb_info_p->s_first_inode_block + dir_entry.d_ino, v_device);
+                beanfs_transform2inode_info(&dir_inode, &dir_inode_info, dir_entry.d_ino);
+                if (dir_inode.i_links <= 1) {
+                    struct beanfs_dir delete_dir;
+                    //char blank_block[BLOCK_SIZE] = {0};
+                    read_block(&delete_dir, dir_inode_info.i_addr.d_addr[0], sizeof(struct beanfs_dir), 1, v_device);
+                    if (delete_dir.len <= 2) {
+                        // empty dir
+                        beanfs_callback_datablock(sb_info_p, dir_inode_info.i_addr.d_addr[0], v_device);
+                        beanfs_delete_entry(dname, sb_info_p, &dir_inode_info, &dir_entry, v_device);
+                        beanfs_i_callback(sb_info_p, &dir_inode_info, v_device);
+                        status = 1;
+                    } else {
+                        fprintf(stderr, "%s : is not empty \n", full_path);
+                    }
+                } else {
+                    // delete links
+                    beanfs_delete_entry(dname, sb_info_p, &dir_inode_info, &dir_entry, v_device);
+                    dir_inode.i_links--;
+                    status = 1;
+                }
+            } else {
+                fprintf(stderr, "%s: is a directory \n", full_path);
+            }
+            
+        } else {
+            fprintf(stderr, "ilegal input \n");
+        }
+    } else {
+        fprintf(stderr, "ilegal input \n");
+    }
     return status;
 }
 

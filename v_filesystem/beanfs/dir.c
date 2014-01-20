@@ -33,7 +33,7 @@ int beanfs_add_entry(struct beanfs_dir_entry *new_entry, struct beanfs_sb_info *
     // for convience, there must 1 block recording entry_information for every dir
     // that is every directory only have limited entry (18 entrys)
     dir_addr = d_inode_p->i_addr.d_addr[0];
-    assert(d_inode_p->i_blocks == 1);
+    //assert(d_inode_p->i_blocks == 1);
     assert(dir_addr >= sb_info_p->s_first_data_block && dir_addr < sb_info_p->s_blocks_count);
     status = read_block(&curdir, dir_addr, sizeof(struct beanfs_dir), 1, v_device);
     if (status > 0) {
@@ -148,7 +148,7 @@ int beanfs_lookup(char full_path[], struct beanfs_sb_info *sb_info_p, struct bea
                     status = 1;
                 } else {
                     // can't find the file
-                    fprintf(stderr, " %s is not a valid path", full_path);
+                    //fprintf(stderr, " %s is not a valid path", full_path);
                     status = -1;
                 }
                 break;

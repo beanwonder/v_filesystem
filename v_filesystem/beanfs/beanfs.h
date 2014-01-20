@@ -181,8 +181,12 @@ extern int beanfs_i_callback(struct beanfs_sb_info *sb_info_p, struct beanfs_ino
 
 extern int beanfs_lookup(char full_path[], struct beanfs_sb_info *sb_info_p, struct beanfs_dir_entry *entry_p, FILE *v_device);
 extern uint32_t beanfs_alloc_datablock(struct beanfs_sb_info *sb_info_p, FILE *v_device);
+extern int beanfs_callback_datablock(struct beanfs_sb_info *sb_info_p, uint32_t block_addr, FILE *v_device);
+
 extern int beanfs_add_entry(struct beanfs_dir_entry *new_entry, struct beanfs_sb_info *sb_info_p,
                             struct beanfs_inode_info *d_inode_info_p, FILE *v_device);
+extern int beanfs_delete_entry(const char fname[], struct beanfs_sb_info *sb_info_p,
+                               struct beanfs_inode_info *d_inode_p, struct beanfs_dir_entry *deleted_entry, FILE *v_device);
 
 extern int beanfs_fread(struct beanfs_sb_info *sb_info_p, struct beanfs_file *beanfs_file,
                  char buffer[BLOCK_SIZE], uint32_t block_no, FILE *v_device);

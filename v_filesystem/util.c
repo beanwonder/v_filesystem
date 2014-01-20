@@ -139,6 +139,8 @@ void beanfs_shell(const char vfs_device[])
             parse_shell_input(input, &envvars.command, &envvars.argc, envvars.argv);
             if (envvars.argc > 0) {
                 if (strcmp(envvars.command, "exit") == 0) {
+                    // sync superblock before exit
+                    update_superblock(&sb_info, &super_block, v_device);
                     break;
                 } else if (strcmp(envvars.command, "ls") == 0) {
                     beanfs_ls(&envvars, &sb_info, v_device);
@@ -158,6 +160,7 @@ void beanfs_shell(const char vfs_device[])
                 
                 } else if (strcmp(envvars.command, "mkdir") == 0) {
                     beanfs_mkdir(&envvars, &sb_info, v_device);
+                    update_superblock(&sb_info, &super_block, v_device);
                 } else if (strcmp(envvars.command, "clear") == 0) {
                     beanfs_clear();
                 } else if (strcmp(envvars.command, "rmdir") == 0) {
