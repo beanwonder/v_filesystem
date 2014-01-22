@@ -62,8 +62,7 @@ int beanfs_add_entry(struct beanfs_dir_entry *new_entry, struct beanfs_sb_info *
 }
 
 int beanfs_delete_entry(const char fname[], struct beanfs_sb_info *sb_info_p,
-                        struct beanfs_inode_info *d_inode_p, struct beanfs_dir_entry *deleted_entry,
-                        FILE *v_device)
+                        struct beanfs_inode_info *d_inode_p, struct beanfs_dir_entry *deleted_entry, FILE *v_device)
 {
     int status = -1;
     struct beanfs_dir curdir = {0};
@@ -74,6 +73,7 @@ int beanfs_delete_entry(const char fname[], struct beanfs_sb_info *sb_info_p,
     status = read_block(&curdir, dir_addr, sizeof(struct beanfs_dir), 1, v_device);
     if (status > 0) {
         // iterator curdir
+        int8_t tmp_len = curdir.len;
         for (entry_count = 0; entry_count < curdir.len; entry_count++) {
             if (strcmp(curdir.entrys[entry_count].d_name, fname) == 0) {
                 // find the entry to be delete
@@ -85,13 +85,14 @@ int beanfs_delete_entry(const char fname[], struct beanfs_sb_info *sb_info_p,
                 break;
             }
         }
-        if (entry_count < curdir.len) {
+        if (entry_count < tmp_len) {
+            write2block(&curdir, d_inode_p->i_addr.d_addr[0], sizeof(struct beanfs_dir), 1, v_device);
             status = 1;
         } else {
             deleted_entry->d_name[0] = '\0';
             deleted_entry->d_ino = UINT32_MAX;
             deleted_entry->d_file_type = '\0';
-            fprintf(stderr, "No such file ( %s ) or directory", fname);
+            fprintf(stderr, "%s: no such file or directory\n", fname);
         }
     }
     return status;

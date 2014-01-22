@@ -163,34 +163,63 @@ int beanfs_rmdir(struct envrioment_variable *envvars_p, struct beanfs_sb_info *s
     struct beanfs_inode dir_inode;
     struct beanfs_inode_info dir_inode_info;
     
+    struct beanfs_inode pdir_inode;
+    struct beanfs_inode_info pdir_inode_info;
+    
     if (envvars_p->argc == 2) {
         if (envvars_p->argv[1][0] != '/') {
             strcpy(dname, envvars_p->argv[1]);
             strcpy(full_path, envvars_p->curdir);
             if (strcmp(envvars_p->curdir, "/") != 0) {
-                strcpy(full_path, "/");
+                strcat(full_path, "/");
             }
-            strcpy(full_path, dname);
+            strcat(full_path, dname);
             // begin remove
             if (beanfs_lookup(full_path, sb_info_p, &dir_entry, v_device) == 1 && dir_entry.d_file_type == 'd') {
+                if (strcmp(envvars_p->curdir, "/") != 0) {
+                    struct beanfs_dir_entry par_entry;
+                    beanfs_lookup(envvars_p->curdir, sb_info_p, &par_entry, v_device);
+                    beanfs_read_inode(sb_info_p, &pdir_inode, sb_info_p->s_first_inode_block + par_entry.d_ino, v_device);
+                    beanfs_transform2inode_info(&pdir_inode, &pdir_inode_info, par_entry.d_ino);
+                } else {
+                    // read '/' inode info
+                    beanfs_read_inode(sb_info_p, &pdir_inode, sb_info_p->s_first_inode_block, v_device);
+                    beanfs_transform2inode_info(&pdir_inode, &pdir_inode_info, 0);
+                }
                 beanfs_read_inode(sb_info_p, &dir_inode, sb_info_p->s_first_inode_block + dir_entry.d_ino, v_device);
                 beanfs_transform2inode_info(&dir_inode, &dir_inode_info, dir_entry.d_ino);
                 if (dir_inode.i_links <= 1) {
                     struct beanfs_dir delete_dir;
+                    struct beanfs_dir_entry deleted_entry;
+                    struct beanfs_dir tmpdir;
+                    struct beanfs_inode tmpinode;
                     //char blank_block[BLOCK_SIZE] = {0};
                     read_block(&delete_dir, dir_inode_info.i_addr.d_addr[0], sizeof(struct beanfs_dir), 1, v_device);
                     if (delete_dir.len <= 2) {
                         // empty dir
+                        read_block(&tmpdir, sb_info_p->s_first_data_block, sizeof(struct beanfs_dir), 1, v_device);
+                        beanfs_read_inode(sb_info_p, &tmpinode, sb_info_p->s_first_inode_block, v_device);
                         beanfs_callback_datablock(sb_info_p, dir_inode_info.i_addr.d_addr[0], v_device);
-                        beanfs_delete_entry(dname, sb_info_p, &dir_inode_info, &dir_entry, v_device);
+                        
+                        beanfs_read_inode(sb_info_p, &tmpinode, sb_info_p->s_first_inode_block, v_device);
+                        read_block(&tmpdir, sb_info_p->s_first_data_block, sizeof(struct beanfs_dir), 1, v_device);
+                        beanfs_delete_entry(dname, sb_info_p, &pdir_inode_info, &deleted_entry, v_device);
+                        
+                        read_block(&tmpdir, sb_info_p->s_first_data_block, sizeof(struct beanfs_dir), 1, v_device);
+                        beanfs_read_inode(sb_info_p, &tmpinode, sb_info_p->s_first_inode_block, v_device);
                         beanfs_i_callback(sb_info_p, &dir_inode_info, v_device);
+                    
+                        read_block(&tmpdir, sb_info_p->s_first_data_block, sizeof(struct beanfs_dir), 1, v_device);
+                        beanfs_read_inode(sb_info_p, &tmpinode, sb_info_p->s_first_inode_block, v_device);
+
                         status = 1;
                     } else {
                         fprintf(stderr, "%s : is not empty \n", full_path);
                     }
                 } else {
                     // delete links
-                    beanfs_delete_entry(dname, sb_info_p, &dir_inode_info, &dir_entry, v_device);
+                    struct beanfs_dir_entry deleted_entry;
+                    beanfs_delete_entry(dname, sb_info_p, &pdir_inode_info, &deleted_entry, v_device);
                     dir_inode.i_links--;
                     status = 1;
                 }

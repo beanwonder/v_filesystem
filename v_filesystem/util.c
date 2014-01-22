@@ -73,27 +73,48 @@ static void parse_shell_input(char *input, char **command, int *argc, char *argv
     assert(*argc < 100);
 }
 
-static void beanfs_login(struct envrioment_variable *envvars_p)
+static void beanfs_login(struct envrioment_variable *envvars_p, struct beanfs_sb_info *sb_info_p, FILE *v_device)
 {
-    const char account_file_name[] = "account_file";
-    FILE *account_file;
+    char passwd_full_path[] = "/passwd";
     char username[20] = {0};
-    int uid = 0;
-    char passwd[20];
-    int status = 0;
+    char passwd[20] = {0};
     char input_username[20] = {0};
     char input_passwd[20];
     int flag = 1;
+    char buffer[BLOCK_SIZE] = {0};
+    struct beanfs_inode passwd_inode;
+    struct beanfs_inode_info passwd_inode_info;
+    struct beanfs_dir root_dir;
+    struct beanfs_dir_entry passwd_entry;
+    char *start = NULL;
+    char *end = NULL;
     
-    account_file = fopen(account_file_name, "r");
-    status = fscanf(account_file, "%s %d %s\n", username, &uid, passwd);
+    struct beanfs_inode_info root_inode_info;
+    struct beanfs_inode root_inode;
+    read_block(&root_dir, sb_info_p->s_first_data_block, sizeof(struct beanfs_dir), 1, v_device);
+    beanfs_read_inode(sb_info_p, &root_inode, sb_info_p->s_first_inode_block, v_device);
+    beanfs_transform2inode_info(&root_inode, &root_inode_info, 0);
+    
     //printf("%s %d %s", username, uid, passwd);
-    if (status == 3) {
+    if (beanfs_lookup(passwd_full_path, sb_info_p, &passwd_entry, v_device) == 1) {
+        beanfs_read_inode(sb_info_p, &passwd_inode, sb_info_p->s_first_inode_block + passwd_entry.d_ino, v_device);
+        read_data_block(sb_info_p, buffer, passwd_inode.i_addr.d_addr[0], v_device);
+        start = buffer;
+        end = strpbrk(start, " ");
+        strncpy(username, start, end - start);
+        username[end - start] = '\0';
+        start = end + 1;
+        end = strpbrk(start, " ");
+        strncpy(passwd, start, end - start);
+        passwd[end - start] = '\0';
+        start = end + 1;
+        
         do {
             printf("username: ");
             scanf("%s", input_username);
             printf("password: ");
             scanf(" %s", input_passwd);
+            getchar();
             if (strcmp(input_username, username) == 0 && strcmp(input_passwd, passwd) == 0) {
                 flag = 0;
             } else {
@@ -101,15 +122,41 @@ static void beanfs_login(struct envrioment_variable *envvars_p)
             }
         } while (flag);
     } else {
-        fclose(account_file);
-        fprintf(stderr, "error with account_file");
-        exit(1);
+        // passwd doesn't exits
+        // create a passwd file
+        //struct beanfs_dir_entry passwd_entry;
+        
+        printf("creating account . . . \n");
+        printf("username: ");
+        scanf("%s", input_username);
+        printf("password: ");
+        scanf(" %s", input_passwd);
+        getchar();
+        strcpy(username, input_username);
+        strcpy(passwd, input_passwd);
+        
+        strcpy(passwd_entry.d_name, "passwd");
+        passwd_entry.d_file_type = '-';
+        passwd_entry.d_ino = beanfs_alloc_inode(sb_info_p, &passwd_inode_info, v_device);
+        passwd_inode_info.i_uid = 0;
+        passwd_inode_info.i_mode = 644;
+        passwd_inode_info.i_blocks = 1;
+        passwd_inode_info.i_links = 0;
+        passwd_inode_info.i_mode = 0644;
+        passwd_inode_info.i_addr.d_addr[0] = beanfs_alloc_datablock(sb_info_p, v_device);
+        
+        strcpy(buffer, username);
+        strcat(buffer, " ");
+        strcat(buffer, passwd);
+        strcat(buffer, " ");
+        write2block(buffer, passwd_inode_info.i_addr.d_addr[0], BLOCK_SIZE, 1, v_device);
+        update_inode(sb_info_p, &passwd_inode_info, &passwd_inode, v_device);
     }
+    
     envvars_p->gid = 0;
     strcpy(envvars_p->user, username);
-    envvars_p->uid = uid;
+    envvars_p->uid = 0;
     strcpy(envvars_p->curdir, "/");
-    fclose(account_file);
 }
 
 void beanfs_shell(const char vfs_device[])
@@ -128,7 +175,7 @@ void beanfs_shell(const char vfs_device[])
     // init enviroment
     if (v_device != NULL) {
         system("clear");
-        beanfs_login(&envvars);
+        beanfs_login(&envvars, &sb_info, v_device);
         read_superblock(&super_block, v_device);
         beanfs_transform2sb_info(&super_block, &sb_info, v_device);
         while (1) {
@@ -152,8 +199,6 @@ void beanfs_shell(const char vfs_device[])
                 
                 } else if (strcmp(envvars.command, "ln") == 0) {
                     
-                } else if (strcmp(envvars.command, "rm") == 0) {
-                
                 } else if (strcmp(envvars.command, "pwd") == 0) {
                     beanfs_pwd(&envvars);
                 } else if (strcmp(envvars.command, "cat") == 0) {
@@ -164,7 +209,8 @@ void beanfs_shell(const char vfs_device[])
                 } else if (strcmp(envvars.command, "clear") == 0) {
                     beanfs_clear();
                 } else if (strcmp(envvars.command, "rmdir") == 0) {
-                    
+                    beanfs_rmdir(&envvars, &sb_info, v_device);
+                    update_superblock(&sb_info, &super_block, v_device);
                 } else if (strcmp(envvars.command, "passwd") == 0) {
                 
                 } else {

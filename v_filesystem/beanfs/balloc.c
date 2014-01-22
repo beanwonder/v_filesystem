@@ -43,7 +43,10 @@ uint32_t beanfs_alloc_datablock(struct beanfs_sb_info *sb_info_p, FILE *v_device
 int beanfs_callback_datablock(struct beanfs_sb_info *sb_info_p, uint32_t block_addr, FILE *v_device)
 {
     int status = -1;
+    struct beanfs_inode tmpinode;
+    
     // check
+    beanfs_read_inode(sb_info_p, &tmpinode, sb_info_p->s_first_inode_block, v_device);
     if (sb_info_p == NULL || v_device == NULL) {
         return status;
     }
@@ -58,8 +61,11 @@ int beanfs_callback_datablock(struct beanfs_sb_info *sb_info_p, uint32_t block_a
             sb_info_p->s_free_datablocks_group.list[0] = block_addr;
         }
         
-        write2block(&sb_info_p->s_free_datablocks_group, sb_info_p->s_free_datablocksmg_block, sizeof(struct free_blocks_group), 1, v_device);
+        beanfs_read_inode(sb_info_p, &tmpinode, sb_info_p->s_first_inode_block, v_device);
+        write2block(&sb_info_p->s_free_datablocks_group, sb_info_p->s_free_datablocksmg_block,
+                    sizeof(struct free_datablocks_group), 1, v_device);
         status = 1;
+        beanfs_read_inode(sb_info_p, &tmpinode, sb_info_p->s_first_inode_block, v_device);
     }
     return status;                      // if failed return -1 else 1
 }
