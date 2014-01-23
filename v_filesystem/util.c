@@ -126,10 +126,11 @@ static void beanfs_login(struct envrioment_variable *envvars_p, struct beanfs_sb
         // create a passwd file
         //struct beanfs_dir_entry passwd_entry;
         
-        printf("creating account . . . \n");
-        printf("username: ");
+        printf("creating new account . . . \n");
+        
+        printf("enter a username: ");
         scanf("%s", input_username);
-        printf("password: ");
+        printf("enter a password: ");
         scanf(" %s", input_passwd);
         getchar();
         strcpy(username, input_username);
@@ -138,6 +139,7 @@ static void beanfs_login(struct envrioment_variable *envvars_p, struct beanfs_sb
         strcpy(passwd_entry.d_name, "passwd");
         passwd_entry.d_file_type = '-';
         passwd_entry.d_ino = beanfs_alloc_inode(sb_info_p, &passwd_inode_info, v_device);
+        beanfs_add_entry(&passwd_entry, sb_info_p, &root_inode_info, v_device);
         passwd_inode_info.i_uid = 0;
         passwd_inode_info.i_mode = 644;
         passwd_inode_info.i_blocks = 1;
@@ -175,9 +177,10 @@ void beanfs_shell(const char vfs_device[])
     // init enviroment
     if (v_device != NULL) {
         system("clear");
-        beanfs_login(&envvars, &sb_info, v_device);
         read_superblock(&super_block, v_device);
         beanfs_transform2sb_info(&super_block, &sb_info, v_device);
+        beanfs_login(&envvars, &sb_info, v_device);
+        
         while (1) {
             // first exetue is to get rid of the
             printf("%s @ virtual_filesystem:%s \n", envvars.user, envvars.curdir);
