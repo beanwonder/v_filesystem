@@ -236,6 +236,35 @@ int beanfs_rmdir(struct envrioment_variable *envvars_p, struct beanfs_sb_info *s
     return status;
 }
 
+int beanfs_passwd(struct envrioment_variable *envvars, struct beanfs_sb_info *sb_info_p, FILE *v_device)
+{
+    int status = 0;
+    char full_path[] = "/passwd";
+    char username[20] = {0};
+    char passwd[20] = {0};
+    char buffer[BLOCK_SIZE] = {0};
+    struct beanfs_dir_entry file_entry;
+    struct beanfs_inode file_inode;
+    
+    if (beanfs_lookup(full_path, sb_info_p, &file_entry, v_device) == 1 && file_entry.d_file_type == '-') {
+        beanfs_read_inode(sb_info_p, &file_inode, sb_info_p->s_first_inode_block + file_entry.d_ino, v_device);
+        printf(" enter a new password for %s \n", envvars->user);
+        strcpy(username, envvars->user);
+        scanf(" %s ", passwd);
+        
+        strcpy(buffer, username);
+        strcat(buffer, " ");
+        strcat(buffer, passwd);
+        strcat(buffer, " ");
+        write2block(buffer, file_inode.i_addr.d_addr[0], BLOCK_SIZE, 1, v_device);
+        status = 1;
+    } else {
+        fprintf(stderr, "file passwd doesn't exitst \n");
+    }
+    
+    return status;
+}
+
 int beanfs_clear()
 {
     system("clear");
