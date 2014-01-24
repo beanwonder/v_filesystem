@@ -215,7 +215,7 @@ void beanfs_shell(const char vfs_device[])
                     beanfs_rmdir(&envvars, &sb_info, v_device);
                     update_superblock(&sb_info, &super_block, v_device);
                 } else if (strcmp(envvars.command, "passwd") == 0) {
-                
+                    beanfs_passwd(&envvars, &sb_info, v_device);
                 } else {
                     fprintf(stderr, "%s: no such command \n", envvars.command);
                 }

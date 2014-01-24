@@ -250,8 +250,8 @@ int beanfs_passwd(struct envrioment_variable *envvars, struct beanfs_sb_info *sb
         beanfs_read_inode(sb_info_p, &file_inode, sb_info_p->s_first_inode_block + file_entry.d_ino, v_device);
         printf(" enter a new password for %s \n", envvars->user);
         strcpy(username, envvars->user);
-        scanf(" %s ", passwd);
-        
+        scanf(" %s", passwd);
+        getchar();
         strcpy(buffer, username);
         strcat(buffer, " ");
         strcat(buffer, passwd);

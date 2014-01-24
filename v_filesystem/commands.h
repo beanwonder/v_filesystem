@@ -15,5 +15,6 @@ extern int beanfs_ls(struct envrioment_variable *envvars_p, struct beanfs_sb_inf
 extern int beanfs_mkdir(struct envrioment_variable *envvars_p, struct beanfs_sb_info *sb_info_p, FILE *v_device);
 extern int beanfs_rmdir(struct envrioment_variable *envvars_p, struct beanfs_sb_info *sb_info_p, FILE *v_device);
 extern int beanfs_clear(void);
+extern int beanfs_passwd(struct envrioment_variable *envvars, struct beanfs_sb_info *sb_info_p, FILE *v_device);
 
 #endif
