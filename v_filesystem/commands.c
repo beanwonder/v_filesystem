@@ -95,6 +95,44 @@ int beanfs_ls(struct envrioment_variable *envvars_p, struct beanfs_sb_info *sb_i
     return status;
 }
 
+int beanfs_ln(struct envrioment_variable *envvars_p, struct beanfs_sb_info *sb_info_p, FILE *v_device)
+{
+    int status = 0;
+    char src_path[BLOCK_SIZE];
+    struct beanfs_inode curdir_inode;
+    struct beanfs_inode_info curdir_inode_info;
+    struct beanfs_dir_entry cdir_entry;
+    struct beanfs_inode finode;
+    struct beanfs_inode_info finode_info;
+    struct beanfs_dir_entry fentry;
+    struct beanfs_dir_entry new_entry;
+    
+    if (envvars_p->argc == 3) {
+        beanfs_lookup(envvars_p->curdir, sb_info_p, &cdir_entry, v_device);
+        beanfs_read_inode(sb_info_p, &curdir_inode, cdir_entry.d_ino, v_device);
+        beanfs_transform2inode_info(&curdir_inode, &curdir_inode_info, cdir_entry.d_ino);
+        strcpy(src_path, envvars_p->argv[1]);
+        
+        if (beanfs_lookup(src_path, sb_info_p, &fentry, v_device) && fentry.d_file_type == '-') {
+            beanfs_read_inode(sb_info_p, &finode, fentry.d_ino, v_device);
+            beanfs_transform2inode_info(&finode, &finode_info, fentry.d_ino);
+            new_entry = fentry;
+            strcpy(new_entry.d_name, envvars_p->argv[2]);
+            if (beanfs_add_entry(&new_entry, sb_info_p, &curdir_inode_info, v_device) == 1) {
+                finode_info.i_links++;
+                update_inode(sb_info_p, &finode_info, &finode, v_device);
+            }
+        } else {
+            fprintf(stderr, "%s : no such file \n", src_path);
+        }
+        
+    } else {
+        fprintf(stderr, "%s: invalid input \n", envvars_p->command);
+    }
+    
+    return status;
+}
+
 int beanfs_mkdir(struct envrioment_variable *envvars_p, struct beanfs_sb_info *sb_info_p, FILE *v_device)
 {
     int status = 0;

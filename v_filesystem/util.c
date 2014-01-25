@@ -201,7 +201,7 @@ void beanfs_shell(const char vfs_device[])
                 } else if (strcmp(envvars.command, "cp") == 0) {
                 
                 } else if (strcmp(envvars.command, "ln") == 0) {
-                    
+                    beanfs_ln(&envvars, &sb_info, v_device);
                 } else if (strcmp(envvars.command, "pwd") == 0) {
                     beanfs_pwd(&envvars);
                 } else if (strcmp(envvars.command, "cat") == 0) {
