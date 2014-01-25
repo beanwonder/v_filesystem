@@ -121,6 +121,7 @@ int beanfs_ln(struct envrioment_variable *envvars_p, struct beanfs_sb_info *sb_i
             if (beanfs_add_entry(&new_entry, sb_info_p, &curdir_inode_info, v_device) == 1) {
                 finode_info.i_links++;
                 update_inode(sb_info_p, &finode_info, &finode, v_device);
+                status = 1;
             }
         } else {
             fprintf(stderr, "%s : no such file \n", src_path);
